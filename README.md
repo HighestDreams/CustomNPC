@@ -31,8 +31,7 @@ And for the latter (Send a message with player's name from console):
     <li>Permission: customnpc.rca.permission</li>
     <li>Default: Op</li>
   </ul>
-  <li>
-<li>/npc
+    <li>/npc
   <ul>
     <li>Permission: customnpc.permission</li>
     <li>Default: Op</li>
