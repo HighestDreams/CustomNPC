@@ -26,6 +26,12 @@ And for the latter (Send a message with player's name from console):
   <li>You can change message and more stuff for the plugin in <code>Settings.yml</code></li>
   <li>To spawn NPC use this command</li>
 <ul>
+  <li>/rca
+  <ul>
+    <li>Permission: customnpc.rca.permission</li>
+    <li>Default: Op</li>
+  </ul>
+  <li>
 <li>/npc
   <ul>
     <li>Permission: customnpc.permission</li>
