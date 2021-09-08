@@ -1,0 +1,7 @@
+#=========================================#
+# Plugin Custom NPC Made By HighestDreams #
+#=========================================#
+# Cool-down message will send to player when click too fast on NPC
+cooldown-message: "§l§cYou are hitting too fast!"
+# NPC rotation distance (Per block!)
+rotation-distance: 5

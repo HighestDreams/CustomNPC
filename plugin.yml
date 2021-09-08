@@ -1,0 +1,19 @@
+---
+#=========================================#
+# Plugin Custom NPC Made By HighestDreams #
+#=========================================#
+name: CustomNPC
+author: HighestDreams
+version: 1.0.0
+main: HighestDreams\CustomNPC\NPC
+api: 3.0.0
+commands:
+  rca:
+    description: Run a command from a player
+    permission: customnpc.rca.permission
+    default: op
+  npc:
+    description: Spawn custom npc
+    permission: customnpc.permission
+    default: op
+...

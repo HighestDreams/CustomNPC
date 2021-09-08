@@ -1,0 +1,149 @@
+<?php
+declare(strict_types=1);
+#=========================================#
+# Plugin Custom NPC Made By HighestDreams #
+#=========================================#
+namespace HighestDreams\CustomNPC\Form;
+
+use HighestDreams\CustomNPC\{Entity\CustomNPC, Form\formapi\FormAPI, NPC, Session};
+use pocketmine\entity\Skin;
+use pocketmine\Player;
+use pocketmine\Server;
+use pocketmine\utils\TextFormat as COLOR;
+
+class SettingsManager
+{
+
+    public $npc;
+    public $players = ['Choose a player'];
+    public $session;
+
+    public function __construct(NPC $npc)
+    {
+        $this->npc = $npc;
+        $this->session = new Session(NPC::getInstance());
+    }
+
+    /**
+     * @param Player $player
+     * @param CustomNPC $npc
+     */
+    public function send(Player $player, CustomNPC $npc)
+    {
+        $form = (new FormAPI())->createSimpleForm(function (Player $player, $data = null) use ($npc) {
+            if (is_null($data)) return;
+
+            switch ($data) {
+                case 0:
+                    $this->General($player, $npc);
+                    break;
+                case 1:
+                    $this->Other($player, $npc);
+                    break;
+                case 2:
+                    (new CustomizeMain(NPC::getInstance()))->send($player, $npc);
+                    break;
+            }
+        });
+        $form->setTitle("§3Settings Manager");
+        $form->setContent("§3+ §6NPC ID §b: §a" . $npc->getId());
+        $form->addButton('§8General');
+        $form->addButton('§8Other');
+        $form->addButton('§cBack');
+        $form->sendToPlayer($player);
+    }
+
+    /**
+     * @param Player $player
+     * @param CustomNPC $npc
+     */
+    public function General(Player $player, CustomNPC $npc)
+    {
+        foreach (Server::getInstance()->getOnlinePlayers() as $p) {
+            $this->players[] = $p->getName();
+        }
+
+        $form = (new FormAPI())->createCustomForm(function (Player $player, $data = null) use ($npc) {
+            if (is_null($data)) {
+                $this->send($player, $npc);
+                return;
+            }
+
+            if (!empty($data[1]) and $data[1] !== $npc->getName()) {
+                $npc->setNameTag(str_replace('{line}', "\n", $data[1]));
+                $player->sendMessage(NPC::PREFIX . COLOR::GREEN . "NPC name changed successfully.");
+            }
+            if (!empty($data[3]) and $data[3] != $npc->getScale()) {
+                $npc->setScale((float)$data[3]);
+                $player->sendMessage(NPC::PREFIX . COLOR::GREEN . "NPC size changed successfully.");
+            }
+            if ($this->players[$data[5]] !== $this->players[0]) {
+                if (!is_null($target = Server::getInstance()->getPlayer($this->players[$data[5]]))) {
+                    $npc->setSkin(new Skin($target->getSkin()->getSkinId(), $target->getSkin()->getSkinData(), $target->getSkin()->getCapeData(), $target->getSkin()->getGeometryName(), $target->getSkin()->getGeometryData()));
+                    $npc->sendSkin();
+                    $player->sendMessage(NPC::PREFIX . COLOR::GREEN . "NPC skin changed successfully.");
+                } else {
+                    $player->sendMessage(NPC::PREFIX . COLOR::RED . "Player §b{$this->players[$data[5]]} §cis not online!");
+                }
+            }
+        });
+        $form->setTitle("§3General Settings");
+        $form->addLabel('§3+ §6Change the name of NPC');
+        $form->addInput('§fName : ', 'Type a new name for NPC', $npc->getName());
+        $form->addLabel('§3+ §6Change the size of NPC');
+        $form->addInput('§fSize : ', 'Type a new size for NPC', (string)$npc->getScale());
+        $form->addLabel('§3+ §6Change the skin of NPC.' . "\n§3+ §6You can change NPC skin to any online player in server! Choose a player from dropdown below to change NPC skin! (Attention: If you don't want to change the skin of NPC then DO NOT choose a player!)");
+        $form->addDropdown('Skin', $this->players);
+        $form->sendToPlayer($player);
+    }
+
+    /**
+     * @param Player $player
+     * @param CustomNPC $npc
+     */
+    public function Other(Player $player, CustomNPC $npc)
+    {
+        foreach (Server::getInstance()->getOnlinePlayers() as $p) {
+            $this->players[] = $p->getName();
+        }
+        /**
+         * @return float|void
+         */
+        $getCooldown = function () use ($npc) {
+            $total = $this->session::getSettings($npc);
+            foreach ($total as $setting) {
+                if ($setting !== 'rotation') {
+                    return (float)$setting;
+                }
+            }
+        };
+        $getRotation = $this->session::isSettingExists($npc, 'rotation');
+
+        $form = (new FormAPI())->createCustomForm(function (Player $player, $data = null) use ($npc, $getRotation, $getCooldown) {
+            if (is_null($data)) {
+                $this->send($player, $npc);
+                return;
+            }
+            if ($data[1] === true and !$this->session::isSettingExists($npc, 'rotation')) {
+                $this->session::addSetting($npc, 'rotation');
+            } elseif ($data[1] === false and $this->session::isSettingExists($npc, 'rotation') === true) {
+                $this->session::removeSetting($npc, 'rotation');
+            }
+
+            if (is_numeric($data[3])) {
+                foreach ($this->session::getSettings($npc) as $setting) {
+                    if (preg_match('/[0-9]/i', $setting)) {
+                        $this->session::removeSetting($npc, $setting);
+                    }
+                }
+                $this->session::addSetting($npc, $data[3]);
+            }
+        });
+        $form->setTitle("§3Other Settings");
+        $form->addLabel('§3+ §6Enable/Disable Rotation of NPC');
+        $form->addToggle('Rotation', $getRotation);
+        $form->addLabel('§3+ §6Cool Down per second to prevent NPC click spam by players! (To disable the following input, set it to 0!)');
+        $form->addInput('§fCooldown : ', 'For example: 0.5', !is_null($getCooldown()) ? (string)$getCooldown() : '0');
+        $form->sendToPlayer($player);
+    }
+}
