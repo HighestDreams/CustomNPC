@@ -5,7 +5,7 @@ declare(strict_types=1);
 #=========================================#
 namespace HighestDreams\CustomNPC\Form;
 
-use HighestDreams\CustomNPC\{Entity\CustomNPC, Form\formapi\FormAPI, NPC, Session};
+use HighestDreams\CustomNPC\{Entity\CustomNPC, Form\formapi\FormAPI, lang, NPC, Session};
 use pocketmine\Player;
 
 class CommandsManager
@@ -122,7 +122,7 @@ class CommandsManager
             }
         });
         $form->setTitle('§3Add command');
-        $form->addLabel('§3+ §6Write your command in the input below.');
+        $form->addLabel('§3+ §6' . (new lang(NPC::getInstance()))::get((new lang(NPC::getInstance()))::COMMAND_BELOW));
         $form->addInput('', 'Type your command here');
         $form->sendToPlayer($player);
     }

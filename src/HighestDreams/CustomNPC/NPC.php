@@ -29,6 +29,7 @@ class NPC extends PluginBase
     public static $Instance;
     public static $session;
     public static $settings;
+    public static $lang;
 
     /**
      * @return static
@@ -43,10 +44,17 @@ class NPC extends PluginBase
         $this->saveResource('steve.png');
         $this->saveResource('Settings.yml');
         self::$Instance = $this;
+        self::$lang = new lang($this);
         self::$settings = new Config($this->getDataFolder() . 'Settings.yml', Config::YAML);
         self::$session = new Session($this);
         Entity::registerEntity(CustomNPC::class, true);
         $this->getServer()->getPluginManager()->registerEvents(new EventsHandler($this), $this);
+
+        if (is_null(self::$settings->get('language')) or !in_array(self::$settings->get('language'), ['en', 'ru', 'ge', 'ch', 'ko', 'je', 'fr'])) {
+            self::$settings->set('language', 'en');
+            self::$settings->save();
+            $this->getServer()->getLogger()->notice(self::PREFIX . COLOR::AQUA . 'Language NOT FOUND!, we set language to English (Default).');
+        }
     }
 
     /**
@@ -65,7 +73,7 @@ class NPC extends PluginBase
                     if ($target instanceof Player) {
                         $this->getServer()->dispatchCommand($target, trim(implode(" ", $args)));
                     } else {
-                        $player->sendMessage(self::PREFIX . "Player not found.");
+                        $player->sendMessage(self::PREFIX . self::$lang::get(self::$lang::get(self::$lang::RCA_NOTFOUND)));
                     }
                 } else {
                     $player->sendMessage(self::PREFIX . "Usage: /rca <player-name> <command>");
@@ -80,18 +88,18 @@ class NPC extends PluginBase
                 if ($args[0] === "edit") {
                     if (!self::$session::isEditor($player)) {
                         self::$session::setEditorMode($player, true);
-                        $player->sendMessage(self::PREFIX . COLOR::GREEN . 'NPC editing mode enabled for you! Tap any NPC you want to edit, use (/npc edit) command to disable NPC edit mode');
+                        $player->sendMessage(self::PREFIX . COLOR::GREEN . self::$lang::get(self::$lang::NPC_EDITMODE_TUTORIAL));
                     } else {
                         self::$session::setEditorMode($player, false);
-                        $player->sendMessage(self::PREFIX . COLOR::GREEN . 'NPC editing mode disabled your you.');
+                        $player->sendMessage(self::PREFIX . COLOR::GREEN . self::$lang::get(self::$lang::NPC_EDITINGMODE_DISABLE));
                     }
                 } else {
-                    $player->sendMessage(self::PREFIX . COLOR::RED . "For enable NPC editing mode use : /npc edit");
+                    $player->sendMessage(self::PREFIX . COLOR::RED . self::$lang::get(self::$lang::NPC_EDITINGMODE_TUTORIAL2));
                 }
                 return true;
             }
             $this->spawn($player);
-            $player->sendMessage(self::PREFIX . COLOR::GREEN . "NPC created successfully! For customizing you need first enable npc editor mode! for this, use command /npc edit");
+            $player->sendMessage(self::PREFIX . COLOR::GREEN . self::$lang::get(self::$lang::NPC_CREATION_MSG));
         }
         return true;
     }

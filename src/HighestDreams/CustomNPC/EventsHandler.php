@@ -25,12 +25,14 @@ class EventsHandler implements Listener
 {
 
     public static $session;
+    public static $lang;
     public $npc;
 
     public function __construct(NPC $npc)
     {
         $this->npc = $npc;
         self::$session = new Session(NPC::getInstance());
+        self::$lang = new lang(NPC::getInstance());
     }
 
     /**
@@ -45,7 +47,7 @@ class EventsHandler implements Listener
                 if (is_null($npc->namedtag->getCompoundTag("Commands"))) {
                     if ($player->hasPermission('customnpc.permission')) {
                         if (!self::$session::isEditor($player)) {
-                            $player->sendMessage(NPC::PREFIX . COLOR::GREEN . "For customize npc first enable editor mode with command: /npc edit");
+                            $player->sendMessage(NPC::PREFIX . COLOR::GREEN . self::$lang::get(self::$lang::NPC_EDITMODE_TUTORIAL2));
                         } else {
                             (new CustomizeMain(NPC::getInstance()))->send($player, $npc);
                         }
@@ -90,7 +92,7 @@ class EventsHandler implements Listener
     }
 
     /**
-     * @param PlayerMoveEvent $ev
+     * @param PlayerMoveEvent $event
      */
     public function NPCRotation(PlayerMoveEvent $event)
     {
@@ -173,7 +175,7 @@ class EventsHandler implements Listener
                     $npc->teleport($player->asVector3());
                     $npc->yaw = $player->getYaw();
                     $npc->pitch = $player->getPitch();
-                    $player->sendMessage(NPC::PREFIX . COLOR::GREEN . 'NPC ' . COLOR::AQUA . NPC::$teleport[$player->getName()] . COLOR::GREEN . ' has been teleported to you successfully.');
+                    $player->sendMessage(NPC::PREFIX . COLOR::GREEN . 'NPC ' . COLOR::AQUA . NPC::$teleport[$player->getName()] . COLOR::GREEN . self::$lang::get(self::$lang::NPC_TELEPORT));
                     self::$session::setTeleporting($player, false, 0);
                 }
                 $event->setCancelled(true);
