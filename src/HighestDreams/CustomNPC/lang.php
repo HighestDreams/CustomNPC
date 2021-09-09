@@ -19,6 +19,7 @@ class lang
     public const CHANGES = 10;
     public const ROTATION = 11;
     public const COOLDOWN = 12;
+    public const EMOTE = 13;
     public const SKIN = 13;
     public static $NPC;
 
@@ -33,7 +34,11 @@ class lang
      */
     public static function get(int $text)
     {
-        $lang = NPC::$settings->get('language') ?? 'en';
+        if (is_null(NPC::$settings->get('language')) or !in_array(NPC::$settings->get('language'), ['en', 'ru', 'ge', 'ch', 'ko', 'je', 'fr'])) {
+            $lang = 'en';
+        } else {
+            $lang = NPC::$settings->get('language');
+        }
 
         switch ($text) {
             case self::RCA_NOTFOUND:
@@ -76,13 +81,13 @@ class lang
                         return '为您启用NPC编辑模式！点击任何你想编辑的 NPC，使用 (/npc edit) 命令禁用 NPC 编辑模式';
 
                     case 'je':
-                        return 'NPC編集モードが有効になっています！編集するNPCをタップし、（/ npc edit）コマンドを使用してNPC編集モードを無効にします';
+                        return 'NPC編集モードが有効になっています！編集するNPCをタップし、（/npc edit）コマンドを使用してNPC編集モードを無効にします';
 
                     case 'ko':
                         return 'NPC 편집 모드가 활성화되었습니다! 편집하려는 NPC를 누르고 (/npc edit) 명령을 사용하여 NPC 편집 모드를 비활성화합니다.';
 
                     case 'fr':
-                        return "Mode d'édition NPC activé pour vous ! Appuyez sur n'importe quel PNJ que vous souhaitez modifier, utilisez la commande (/npc edit) pour désactiver le mode d'édition NPC";
+                        return "Mode d'édition NPC activé pour vous ! Appuyez sur n'importe quel PNJ que vous souhaitez modifier, utilisez la commande (/npc edit) pour désactiver le mode d'édition NPC";
                 }
                 break;
 
@@ -126,7 +131,7 @@ class lang
                         return '要启用 NPC 编辑模式，请使用：/npc edit';
 
                     case 'je':
-                        return 'NPC編集モードを有効にするには：/ npc edit';
+                        return 'NPC編集モードを有効にするには：/npc edit';
 
                     case 'ko':
                         return 'NPC 편집 모드를 활성화하려면 다음을 사용하십시오. /npc edit';
@@ -151,13 +156,13 @@ class lang
                         return 'NPC创建成功！要进行自定义，您需要先启用 npc 编辑器模式！为此，请使用命令 /npc edit';
 
                     case 'je':
-                        return 'NPCが正常に作成されました！カスタマイズするには、最初にnpcエディターモードを有効にする必要があります！これには、コマンド/ npceditを使用します';
+                        return 'NPCが正常に作成されました！カスタマイズするには、最初にnpcエディターモードを有効にする必要があります！これには、コマンド/npc editを使用します';
 
                     case 'ko':
                         return 'NPC 생성 성공! 커스터마이징을 위해서는 먼저 npc 편집기 모드를 활성화해야 합니다! 이를 위해 /npc edit 명령을 사용하십시오';
 
                     case 'fr':
-                        return "PNJ créé avec succès ! Pour personnaliser, vous devez d'abord activer le mode éditeur npc ! pour cela, utilisez la commande /npc edit";
+                        return "PNJ créé avec succès ! Pour personnaliser, vous devez d'abord activer le mode éditeur npc ! pour cela, utilisez la commande /npc edit";
                 }
                 break;
 
@@ -257,7 +262,7 @@ class lang
                         return '삭제됩니다. 이 작업을 수행하시겠습니까?';
 
                     case 'fr':
-                        return 'sera supprimé, êtes-vous sûr de cette action ?';
+                        return 'sera supprimé, êtes-vous sûr de cette action ?';
                 }
                 break;
 
@@ -357,7 +362,7 @@ class lang
                         return '플레이어의 NPC 클릭 스팸을 방지하기 위해 초당 쿨다운! (다음 입력을 비활성화하려면 0으로 설정하십시오!)';
 
                     case 'fr':
-                        return "Refroidissement par seconde pour empêcher le spam de clics sur les PNJ par les joueurs ! (Pour désactiver l'entrée suivante, réglez-la sur 0 !)";
+                        return "Refroidissement par seconde pour empêcher le spam de clics sur les PNJ par les joueurs ! (Pour désactiver l'entrée suivante, réglez-la sur 0 !)";
                 }
                 break;
 
@@ -382,7 +387,32 @@ class lang
                         return "NPC의 스킨을 변경하세요.\n§3+ §6NPC 스킨을 서버의 온라인 플레이어로 변경할 수 있습니다! 아래 드롭다운에서 플레이어를 선택하여 NPC 스킨을 변경하세요! (주의: NPC의 스킨을 변경하고 싶지 않다면 플레이어를 선택하지 마십시오!)";
 
                     case 'fr':
-                        return "Changez l'apparence du PNJ.\n§3+ §6Vous pouvez changer l'apparence du PNJ pour n'importe quel joueur en ligne sur le serveur ! Choisissez un joueur dans la liste déroulante ci-dessous pour changer de skin de PNJ ! (Attention : si vous ne voulez pas changer le skin du PNJ, NE choisissez PAS de joueur !)";
+                        return "Changez l'apparence du PNJ.\n§3+ §6Vous pouvez changer l'apparence du PNJ pour n'importe quel joueur en ligne sur le serveur ! Choisissez un joueur dans la liste déroulante ci-dessous pour changer de skin de PNJ ! (Attention : si vous ne voulez pas changer le skin du PNJ, NE choisissez PAS de joueur !)";
+                }
+                break;
+
+            case self::EMOTE:
+                switch (strtolower($lang)) {
+                    case 'en':
+                        return 'Select an emote for NPC (Emotes timer can be change in Settings.yml!)';
+
+                    case 'ru':
+                        return 'Выберите эмоцию для NPC (таймер эмоций можно изменить в Settings.yml!)';
+
+                    case 'ge':
+                        return 'Wählen Sie ein Emote für NPC (Emotes-Timer kann in Settings.yml geändert werden!)';
+
+                    case 'ch':
+                        return '为 NPC 选择一个表情（表情计时器可以在 Settings.yml 中更改！）';
+
+                    case 'je':
+                        return 'NPCのエモートを選択します（エモートタイマーはSettings.ymlで変更できます！）';
+
+                    case 'ko':
+                        return 'NPC에 대한 이모티콘 선택(이모트 타이머는 Settings.yml에서 변경할 수 있습니다!)';
+
+                    case 'fr':
+                        return 'Sélectionnez une emote pour le PNJ (le minuteur des emotes peut être modifié dans Settings.yml !)';
                 }
                 break;
         }

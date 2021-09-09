@@ -15,3 +15,5 @@ rotation-distance: 5
 # ko (Korean)
 # fr (French)
 language: "en"
+# Set a timer for emotes per seconds (10 = every 10 seconds do motes for NPC)
+emote-timer: 10

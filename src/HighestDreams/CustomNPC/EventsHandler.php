@@ -15,6 +15,8 @@ use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\math\Vector2;
+use pocketmine\network\mcpe\protocol\AnimatePacket;
+use pocketmine\network\mcpe\protocol\EmotePacket;
 use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\Player;
@@ -107,8 +109,7 @@ class EventsHandler implements Listener
 
             $angle = atan2($player->z - $npc->z, $player->x - $npc->x);
             $yaw = (($angle * 180) / M_PI) - 90;
-            $v = new Vector2($npc->x, $npc->z);
-            $dist = $v->distance($player->x, $player->z);
+            $dist = (new Vector2($npc->x, $npc->z))->distance($player->x, $player->z);
             $angle = atan2($dist, $player->y - $npc->y);
             $pitch = (($angle * 180) / M_PI) - 90;
 

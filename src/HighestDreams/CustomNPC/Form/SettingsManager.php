@@ -119,7 +119,12 @@ class SettingsManager
         };
         $getRotation = $this->session::isSettingExists($npc, 'rotation');
 
-        $form = (new FormAPI())->createCustomForm(function (Player $player, $data = null) use ($npc, $getRotation, $getCooldown) {
+        $emotesList = ['Choose an emote'];
+        foreach (NPC::$emotes as $emote => $id) {
+            $emotesList[] = $emote;
+        }
+
+        $form = (new FormAPI())->createCustomForm(function (Player $player, $data = null) use ($npc, $getRotation, $getCooldown, $emotesList) {
             if (is_null($data)) {
                 $this->send($player, $npc);
                 return;
@@ -138,12 +143,23 @@ class SettingsManager
                 }
                 $this->session::addSetting($npc, $data[3]);
             }
+
+            if (!$this->session::isSettingExists($npc, $emotesList[$data[5]])) {
+                foreach ($this->session::getSettings($npc) as $setting) {
+                    if (in_array($setting, $emotesList)) {
+                        $this->session::removeSetting($npc, $setting);
+                    }
+                }
+                $this->session::addSetting($npc, $emotesList[$data[5]]);
+            }
         });
         $form->setTitle("§3Other Settings");
         $form->addLabel('§3+ §6' . $this->lang::get($this->lang::ROTATION));
         $form->addToggle('Rotation', $getRotation);
         $form->addLabel('§3+ §6' . $this->lang::get($this->lang::COOLDOWN));
         $form->addInput('§fCooldown : ', 'For example: 0.5', !is_null($getCooldown()) ? (string)$getCooldown() : '0');
+        $form->addLabel('§3+ §6' . $this->lang::get($this->lang::EMOTE));
+        $form->addDropdown('Emotes :', $emotesList);
         $form->sendToPlayer($player);
     }
 }
