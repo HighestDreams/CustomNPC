@@ -67,7 +67,7 @@ class lang
                         return 'NPC editing mode enabled for you! Tap any NPC you want to edit, use (/npc edit) command to disable NPC edit mode';
 
                     case 'ru':
-                        return 'Для вас включен режим редактирования NPC! Коснитесь любого NPC, которого хотите отредактировать, используйте команду (/ npc edit), чтобы отключить режим редактирования NPC.';
+                        return 'Для вас включен режим редактирования NPC! Коснитесь любого NPC, которого хотите отредактировать, используйте команду (/npc edit), чтобы отключить режим редактирования NPC.';
 
                     case 'ge':
                         return 'NPC-Bearbeitungsmodus für Sie aktiviert! Tippen Sie auf einen NPC, den Sie bearbeiten möchten, verwenden Sie den Befehl (/npc edit), um den NPC-Bearbeitungsmodus zu deaktivieren';
@@ -117,7 +117,7 @@ class lang
                         return 'For enable NPC editing mode use : /npc edit';
 
                     case 'ru':
-                        return 'Для включения режима редактирования NPC используйте: / npc edit';
+                        return 'Для включения режима редактирования NPC используйте: /npc edit';
 
                     case 'ge':
                         return 'Um den NPC-Bearbeitungsmodus zu aktivieren, verwenden Sie: /npc edit';
@@ -142,7 +142,7 @@ class lang
                         return 'NPC created successfully! For customizing you need first enable npc editor mode! for this, use command /npc edit';
 
                     case 'ru':
-                        return 'NPC успешно создан! Для настройки вам необходимо сначала включить режим редактора npc! для этого используйте команду / npc edit';
+                        return 'NPC успешно создан! Для настройки вам необходимо сначала включить режим редактора npc! для этого используйте команду /npc edit';
 
                     case 'ge':
                         return 'NPC erfolgreich erstellt! Zum Anpassen müssen Sie zuerst den npc-Editor-Modus aktivieren! Verwenden Sie dazu den Befehl /npc edit';
@@ -192,7 +192,7 @@ class lang
                         return 'Go to the place you want and then send §chere §ain the chat.';
 
                     case 'ru':
-                        return 'Перейдите в нужное место и отправьте в чат §chere §.';
+                        return 'Перейдите в нужное место и отправьте в чат §chere.';
 
                     case 'ge':
                         return 'Gehen Sie an den gewünschten Ort und senden Sie dann §chere §in den Chat.';
@@ -317,7 +317,7 @@ class lang
                         return 'Enable/Disable Rotation of NPC';
 
                     case 'ru':
-                        return 'Включение / отключение вращения NPC';
+                        return 'Включить/отключить вращения NPC';
 
                     case 'ge':
                         return 'Aktivieren/Deaktivieren der NPC-Rotation';
@@ -342,7 +342,7 @@ class lang
                         return 'Cool Down per second to prevent NPC click spam by players! (To disable the following input, set it to 0!)';
 
                     case 'ru':
-                        return 'Охлаждение в секунду, чтобы предотвратить спам NPC со стороны игроков! (Чтобы отключить следующий вход, установите его на 0!)';
+                        return 'Задержка в секундах, чтобы предотвратить спам NPC со стороны игроков! (Чтобы отключить следующий вход, установите его на 0!)';
 
                     case 'ge':
                         return 'Cool Down pro Sekunde, um NPC-Klick-Spam durch Spieler zu verhindern! (Um den folgenden Eingang zu deaktivieren, setzen Sie ihn auf 0!)';
