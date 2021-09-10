@@ -5,7 +5,7 @@
 
 [![CustomNPC plugin pocket-mine 1.17.X](https://img.youtube.com/vi/zgZWFgTf3Y4/0.jpg)](https://www.youtube.com/watch?v=zgZWFgTf3Y4 "CustomNPC plugin pocket-mine 1.17.X")
 <li>
-  Click on above picture to see tutorial video of plugin.
+  Click on above picture to see tutorial video of the plugin.
   </li>
   <br>
 <p>This is an NPC plugin with super easy customization for pocket-mine.</p>
