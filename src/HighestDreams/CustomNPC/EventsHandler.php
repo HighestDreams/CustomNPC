@@ -117,7 +117,7 @@ class EventsHandler implements Listener
 
                     $pk = new MovePlayerPacket();
                     $pk->entityRuntimeId = $npc->getId();
-                    $pk->position = $npc->asVector3()->add(0, 1.5, /* When NPC size increase and if rotation be on for NPC, NPC move in air, but now its fixed */ 0);
+                    $pk->position = $npc->asVector3()->add(0, 1.6, /* When NPC size increase and if rotation be on for NPC, NPC move in air, but now its fixed */ 0);
                     $pk->yaw = $yaw;
                     $pk->pitch = $pitch;
                     $pk->headYaw = $yaw;
