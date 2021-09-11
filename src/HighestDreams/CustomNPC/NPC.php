@@ -110,7 +110,7 @@ class NPC extends PluginBase
                         $player->sendMessage(self::PREFIX . COLOR::GREEN . self::$lang::get(self::$lang::NPC_EDITMODE_DISABLE));
                     }
                 } else {
-                    $player->sendMessage(self::PREFIX . COLOR::RED . self::$lang::get(self::$lang::NPC_EDITGMODE_TUTORIAL2));
+                    $player->sendMessage(self::PREFIX . COLOR::RED . self::$lang::get(self::$lang::NPC_EDITMODE_TUTORIAL2));
                 }
                 return true;
             }
