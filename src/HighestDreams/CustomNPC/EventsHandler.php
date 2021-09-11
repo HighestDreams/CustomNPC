@@ -124,14 +124,6 @@ class EventsHandler implements Listener
                     $pk->onGround = $npc->onGround;
                     $player->dataPacket($pk);
                 }
-            } else {
-                $pk = new MoveActorAbsolutePacket();
-                $pk->entityRuntimeId = $npc->getId();
-                $pk->position = $npc->asVector3();
-                $pk->xRot = $pitch;
-                $pk->yRot = $yaw;
-                $pk->zRot = $yaw;
-                $player->dataPacket($pk);
             }
         }
     }

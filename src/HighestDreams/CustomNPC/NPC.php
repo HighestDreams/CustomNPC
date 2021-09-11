@@ -89,7 +89,7 @@ class NPC extends PluginBase
                     if ($target instanceof Player) {
                         $this->getServer()->dispatchCommand($target, trim(implode(" ", $args)));
                     } else {
-                        $player->sendMessage(self::PREFIX . self::$lang::get(self::$lang::get(self::$lang::RCA_NOTFOUND)));
+                        $player->sendMessage(self::PREFIX . self::$lang::get(self::$lang::RCA_NOTFOUND));
                     }
                 } else {
                     $player->sendMessage(self::PREFIX . "Usage: /rca <player-name> <command>");
@@ -110,7 +110,7 @@ class NPC extends PluginBase
                         $player->sendMessage(self::PREFIX . COLOR::GREEN . self::$lang::get(self::$lang::NPC_EDITMODE_DISABLE));
                     }
                 } else {
-                    $player->sendMessage(self::PREFIX . COLOR::RED . self::$lang::get(self::$lang::NPC_EDITGMODE_TUTORIAL2));
+                    $player->sendMessage(self::PREFIX . COLOR::RED . self::$lang::get(self::$lang::NPC_EDITMODE_TUTORIAL2));
                 }
                 return true;
             }
@@ -125,22 +125,7 @@ class NPC extends PluginBase
      */
     public function spawn(Player $player)
     {
-        $nbt = new CompoundTag("", [
-            new ListTag("Pos", [
-                new DoubleTag("", $player->getX()),
-                new DoubleTag("", $player->getY()),
-                new DoubleTag("", $player->getZ())
-            ]),
-            new ListTag("Motion", [
-                new DoubleTag("", 0),
-                new DoubleTag("", 0),
-                new DoubleTag("", 0)
-            ]),
-            new ListTag("Rotation", [
-                new FloatTag("", 0),
-                new FloatTag("", 0)
-            ])
-        ]);
+        $nbt = Entity::createBaseNBT($player, $player->getMotion(), $player->getYaw(), $player->getPitch());
         $nbt->setTag($player->namedtag->getTag("Skin"));
         $npc = new CustomNPC ($player->getLevel(), $nbt);
         $npc->yaw = $player->getYaw();

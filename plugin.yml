@@ -12,9 +12,16 @@ commands:
   rca:
     description: Run a command from a player
     permission: customnpc.rca.permission
-    default: op
+    usage: /rca <player-name> <command-for-execute)
   npc:
     description: Spawn custom npc
     permission: customnpc.permission
+
+permissions:
+  customnpc.rca.permission:
+    description: "Allows the user to use /rca command"
+    default: op
+  customnpc.permission:
+    description: "Allows the user to use /npc command (To spawn NPC & Edit NPC)"
     default: op
 ...
