@@ -107,17 +107,17 @@ class EventsHandler implements Listener
 
         foreach ($player->getLevel()->getNearbyEntities($player->getBoundingBox()->expandedCopy($maxDistance, $maxDistance, $maxDistance), $player) as $npc) {
 
-            $angle = atan2($player->z - $npc->z, $player->x - $npc->x);
-            $yaw = (($angle * 180) / M_PI) - 90;
-            $dist = (new Vector2($npc->x, $npc->z))->distance($player->x, $player->z);
-            $angle = atan2($dist, $player->y - $npc->y);
-            $pitch = (($angle * 180) / M_PI) - 90;
-
             if ($npc instanceof CustomNPC) {
                 if (self::$session::isSettingExists($npc, 'rotation')) {
+                    $angle = atan2($player->z - $npc->z, $player->x - $npc->x);
+                    $yaw = (($angle * 180) / M_PI) - 90;
+                    $dist = (new Vector2($npc->x, $npc->z))->distance($player->x, $player->z);
+                    $angle = atan2($dist, $player->y - $npc->y);
+                    $pitch = (($angle * 180) / M_PI) - 90;
+
                     $pk = new MovePlayerPacket();
                     $pk->entityRuntimeId = $npc->getId();
-                    $pk->position = $npc->asVector3()->add(0, $npc->getEyeHeight(), 0);
+                    $pk->position = $npc->asVector3()->add(0, 1.5, /* When NPC size increase and if rotation be on for NPC, NPC move in air, but now its fixed */ 0);
                     $pk->yaw = $yaw;
                     $pk->pitch = $pitch;
                     $pk->headYaw = $yaw;
