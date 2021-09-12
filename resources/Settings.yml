@@ -1,19 +1,18 @@
 #=========================================#
 # Plugin Custom NPC Made By HighestDreams #
 #=========================================#
-# Cool-down message will send to player when click too fast on NPC
+# Cool Down message for when the player has reached the maximum NPC hit limit (Will send as popup).
 cooldown-message: "§l§cYou are hitting too fast!"
-# NPC rotation distance (Per block!)
-rotation-distance: 5
-# Select your language, the form's language will change to what ever you select HERE!
-# Available languages:
-# en (English)
-# ru (Russian)
-# ge (Germany)
-# ch (Chinese)
-# je (Japanese)
-# ko (Korean)
-# fr (French)
-language: "en"
-# Set a timer for emotes per seconds (10 = every 10 seconds do motes for NPC)
+# NPC rotation distance ( 7 = When player walking around npc less than 5 block distance ).
+rotation-distance: 7
+# Select your language for plugin (Note: The language will only change for who is setting the NPC in).
+# En (English)
+# Ru (Russian)
+# Ge (Germany)
+# Ch (Chinese)
+# Je (Japanese)
+# Ko (Korean)
+# Fr (French)
+language: "En"
+# Set a timer for NPCs to do emotes ( 10 = every 10 seconds those NPCs have emotes will do emote ).
 emote-timer: 10
