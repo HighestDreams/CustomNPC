@@ -5,7 +5,7 @@ declare(strict_types=1);
 #=========================================#
 namespace HighestDreams\CustomNPC\Form;
 
-use HighestDreams\CustomNPC\{Entity\CustomNPC, Form\formapi\FormAPI, lang, NPC, Session};
+use HighestDreams\CustomNPC\{Entity\CustomNPC, Form\formapi\FormAPI, lang, Language, NPC, Session};
 use pocketmine\entity\Skin;
 use pocketmine\Player;
 use pocketmine\Server;
@@ -13,42 +13,31 @@ use pocketmine\utils\TextFormat as COLOR;
 
 class SettingsManager
 {
-
-    public $npc;
     public $players = ['Choose a player'];
-    public $session;
-    public $lang;
-
-    public function __construct(NPC $npc)
-    {
-        $this->npc = $npc;
-        $this->session = new Session(NPC::getInstance());
-        $this->lang = new lang(NPC::getInstance());
-    }
 
     /**
      * @param Player $player
-     * @param CustomNPC $npc
+     * @param CustomNPC $NPC
      */
-    public function send(Player $player, CustomNPC $npc)
+    public function send(Player $player, CustomNPC $NPC)
     {
-        $form = (new FormAPI())->createSimpleForm(function (Player $player, $data = null) use ($npc) {
+        $form = (new FormAPI())->createSimpleForm(function (Player $player, $data = null) use ($NPC) {
             if (is_null($data)) return;
 
             switch ($data) {
                 case 0:
-                    $this->General($player, $npc);
+                    $this->General($player, $NPC);
                     break;
                 case 1:
-                    $this->Other($player, $npc);
+                    $this->Other($player, $NPC);
                     break;
                 case 2:
-                    (new CustomizeMain(NPC::getInstance()))->send($player, $npc);
+                    (new CustomizeMain())->send($player, $NPC);
                     break;
             }
         });
         $form->setTitle("§3Settings Manager");
-        $form->setContent("§3+ §6NPC ID §b: §a" . $npc->getId());
+        $form->setContent("§3+ §6NPC ID §b: §a" . $NPC->getId());
         $form->addButton('§8General');
         $form->addButton('§8Other');
         $form->addButton('§cBack');
@@ -57,51 +46,51 @@ class SettingsManager
 
     /**
      * @param Player $player
-     * @param CustomNPC $npc
+     * @param CustomNPC $NPC
      */
-    public function General(Player $player, CustomNPC $npc)
+    public function General(Player $player, CustomNPC $NPC)
     {
         foreach (Server::getInstance()->getOnlinePlayers() as $p) {
             $this->players[] = $p->getName();
         }
 
-        $form = (new FormAPI())->createCustomForm(function (Player $player, $data = null) use ($npc) {
+        $form = (new FormAPI())->createCustomForm(function (Player $player, $data = null) use ($NPC) {
             if (is_null($data)) {
-                $this->send($player, $npc);
+                $this->send($player, $NPC);
                 return;
             }
 
-            if (!empty($data[1]) and $data[1] !== $npc->getName()) {
-                $npc->setNameTag(str_replace('{line}', "\n", $data[1]));
+            if (!empty($data[1]) and $data[1] !== $NPC->getName()) {
+                $NPC->setNameTag(str_replace('{line}', "\n", $data[1]));
             }
-            if (!empty($data[3]) and $data[3] != $npc->getScale()) {
-                $npc->setScale((float)$data[3]);
+            if (!empty($data[3]) and $data[3] != $NPC->getScale()) {
+                $NPC->setScale((float)$data[3]);
             }
             if ($this->players[$data[5]] !== $this->players[0]) {
                 if (!is_null($target = Server::getInstance()->getPlayer($this->players[$data[5]]))) {
-                    $npc->setSkin(new Skin($target->getSkin()->getSkinId(), $target->getSkin()->getSkinData(), $target->getSkin()->getCapeData(), $target->getSkin()->getGeometryName(), $target->getSkin()->getGeometryData()));
-                    $npc->sendSkin();
+                    $NPC->setSkin(new Skin($target->getSkin()->getSkinId(), $target->getSkin()->getSkinData(), $target->getSkin()->getCapeData(), $target->getSkin()->getGeometryName(), $target->getSkin()->getGeometryData()));
+                    $NPC->sendSkin();
                 } else {
                     $player->sendMessage(NPC::PREFIX . COLOR::RED . "Player §b{$this->players[$data[5]]} §cis not online!");
                 }
             }
-            $player->sendMessage(NPC::PREFIX . COLOR::GREEN . $this->lang::get($this->lang::CHANGES));
+            $player->sendMessage(NPC::PREFIX . COLOR::GREEN . Language::translated(Language::CHANGES));
         });
         $form->setTitle("§3General Settings");
         $form->addLabel('§3+ §6Change the name of NPC');
-        $form->addInput('§fName : ', 'Type a new name for NPC', $npc->getName());
+        $form->addInput('§fName : ', 'Type a new name for NPC', $NPC->getName());
         $form->addLabel('§3+ §6Change the size of NPC');
-        $form->addInput('§fSize : ', 'Type a new size for NPC', (string)$npc->getScale());
-        $form->addLabel("§3+ §6" . $this->lang::get($this->lang::SKIN));
+        $form->addInput('§fSize : ', 'Type a new size for NPC', (string)$NPC->getScale());
+        $form->addLabel("§3+ §6" . Language::translated(Language::SKIN));
         $form->addDropdown('Skin', $this->players);
         $form->sendToPlayer($player);
     }
 
     /**
      * @param Player $player
-     * @param CustomNPC $npc
+     * @param CustomNPC $NPC
      */
-    public function Other(Player $player, CustomNPC $npc)
+    public function Other(Player $player, CustomNPC $NPC)
     {
         foreach (Server::getInstance()->getOnlinePlayers() as $p) {
             $this->players[] = $p->getName();
@@ -109,56 +98,56 @@ class SettingsManager
         /**
          * @return float|void
          */
-        $getCooldown = function () use ($npc) {
-            $total = $this->session::getSettings($npc);
+        $getCooldown = function () use ($NPC) {
+            $total = NPC::get($NPC, 'Settings');
             foreach ($total as $setting) {
-                if ($setting !== 'rotation') {
+                if (is_numeric($setting)) {
                     return (float)$setting;
                 }
             }
         };
-        $getRotation = $this->session::isSettingExists($npc, 'rotation');
+        $getRotation = NPC::isset($NPC, 'rotation', 'Settings');
 
         $emotesList = ['Choose an emote'];
         foreach (NPC::$emotes as $emote => $id) {
             $emotesList[] = $emote;
         }
 
-        $form = (new FormAPI())->createCustomForm(function (Player $player, $data = null) use ($npc, $getRotation, $getCooldown, $emotesList) {
+        $form = (new FormAPI())->createCustomForm(function (Player $player, $data = null) use ($NPC, $getRotation, $getCooldown, $emotesList) {
             if (is_null($data)) {
-                $this->send($player, $npc);
+                $this->send($player, $NPC);
                 return;
             }
-            if ($data[1] === true and !$this->session::isSettingExists($npc, 'rotation')) {
-                $this->session::addSetting($npc, 'rotation');
-            } elseif ($data[1] === false and $this->session::isSettingExists($npc, 'rotation') === true) {
-                $this->session::removeSetting($npc, 'rotation');
+            if ($data[1] === true and !NPC::isset($NPC, 'rotation', 'Settings')) {
+                NPC::add($NPC, 'rotation', 'Settings');
+            } elseif ($data[1] === false and NPC::isset($NPC, 'rotation', 'Settings') === true) {
+                NPC::remove($NPC, 'rotation', 'Settings');
             }
 
             if (is_numeric($data[3])) {
-                foreach ($this->session::getSettings($npc) as $setting) {
-                    if (preg_match('/[0-9]/i', $setting)) {
-                        $this->session::removeSetting($npc, $setting);
+                foreach (NPC::get($NPC, 'Settings') as $setting) {
+                    if (is_numeric($setting)) {
+                        NPC::remove($NPC, $setting, 'Settings');
                     }
                 }
-                $this->session::addSetting($npc, $data[3]);
+                NPC::add($NPC, $data[3], 'Settings');
             }
 
-            if (!$this->session::isSettingExists($npc, $emotesList[$data[5]])) {
-                foreach ($this->session::getSettings($npc) as $setting) {
+            if (!NPC::isset($NPC, $emotesList[$data[5]], 'Settings')) {
+                foreach (NPC::get($NPC, 'Settings') as $setting) {
                     if (in_array($setting, $emotesList)) {
-                        $this->session::removeSetting($npc, $setting);
+                        NPC::remove($NPC, $setting, 'Settings');
                     }
                 }
-                $this->session::addSetting($npc, $emotesList[$data[5]]);
+                NPC::add($NPC, $emotesList[$data[5]], 'Settings');
             }
         });
         $form->setTitle("§3Other Settings");
-        $form->addLabel('§3+ §6' . $this->lang::get($this->lang::ROTATION));
+        $form->addLabel('§3+ §6' . Language::translated(Language::ROTATION));
         $form->addToggle('Rotation', $getRotation);
-        $form->addLabel('§3+ §6' . $this->lang::get($this->lang::COOLDOWN));
+        $form->addLabel('§3+ §6' . Language::translated(Language::COOLDOWN));
         $form->addInput('§fCooldown : ', 'For example: 0.5', !is_null($getCooldown()) ? (string)$getCooldown() : '0');
-        $form->addLabel('§3+ §6' . $this->lang::get($this->lang::EMOTE));
+        $form->addLabel('§3+ §6' . Language::translated(Language::EMOTE));
         $form->addDropdown('Emotes :', $emotesList);
         $form->sendToPlayer($player);
     }

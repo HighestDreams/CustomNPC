@@ -15,9 +15,6 @@ use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\math\Vector2;
-use pocketmine\network\mcpe\protocol\AnimatePacket;
-use pocketmine\network\mcpe\protocol\EmotePacket;
-use pocketmine\network\mcpe\protocol\MoveActorAbsolutePacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\Player;
 use pocketmine\Server;
@@ -26,64 +23,63 @@ use pocketmine\utils\TextFormat as COLOR;
 class EventsHandler implements Listener
 {
 
-    public static $session;
-    public static $lang;
-    public $npc;
-
-    public function __construct(NPC $npc)
-    {
-        $this->npc = $npc;
-        self::$session = new Session(NPC::getInstance());
-        self::$lang = new lang(NPC::getInstance());
-    }
-
     /**
      * @param EntityDamageByEntityEvent $event
      */
-    public function onHitNPC(EntityDamageByEntityEvent $event)
+    public function onHitNPC (EntityDamageByEntityEvent $event)
     {
         $player = $event->getDamager();
-        $npc = $event->getEntity();
-        if ($npc instanceof CustomNPC) {
+        $NPC = $event->getEntity();
+
+        if ($NPC instanceof CustomNPC) {
             if ($player instanceof Player) {
-                if (is_null($npc->namedtag->getCompoundTag("Commands"))) {
-                    if ($player->hasPermission('customnpc.permission')) {
-                        if (!self::$session::isEditor($player)) {
-                            $player->sendMessage(NPC::PREFIX . COLOR::GREEN . self::$lang::get(self::$lang::NPC_EDITMODE_TUTORIAL2));
+                /* If never added command to NPC (Like spawned NPC for the first time) */
+                if (is_null($NPC->namedtag->getCompoundTag("Commands"))) {
+                    if ($player->hasPermission('customNPC.permission')) {
+                        /* If clicked person (Is op or they have customNPCs permission) */
+                        if (!isset(NPC::$editor[array_search($player->getName(), NPC::$editor)])) {
+                            $player->sendMessage(NPC::PREFIX . COLOR::GREEN . Language::translated(Language::NPC_NEVER_ADDED_COMMAND));
                         } else {
-                            (new CustomizeMain(NPC::getInstance()))->send($player, $npc);
+                            (new CustomizeMain())->send($player, $NPC);
                         }
                     }
                 } else {
-                    if (self::$session::isEditor($player)) {
-                        (new CustomizeMain(NPC::getInstance()))->send($player, $npc);
-                    } else {
-                        foreach (self::$session::getSettings($npc) as $setting) {
-                            if (ctype_alnum($setting)) {
-                                if ((int)$setting > 0) {
-                                    if (!isset(NPC::$timer[$npc->getId()][$player->getName()])) {
-                                        NPC::$timer[$npc->getId()][$player->getName()] = microtime(true);
-                                        foreach (self::$session::getCommands($npc) as $command) {
-                                            $command = str_replace("{player}", '"' . $player->getName() . '"', $command);
-                                            $command = str_replace("{rca}", 'rca', $command);
-                                            Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), $command);
+                    /* If commands added before to the clicked NPC */
+                    if (isset(NPC::$editor[array_search($player->getName(), NPC::$editor)])) {
+                        /* If clicked person (Is op or they have customNPCs permission) */
+                        (new CustomizeMain())->send($player, $NPC);
+                    } else { /* Now it's time for execute for the player */
+                        /* Cool-down */
+                        foreach (NPC::get($NPC, 'Settings') as $setting) {
+                            if (is_numeric($setting) and (int)$setting > 0) {
+                                if (!isset(NPC::$timer[$NPC->getId()][$player->getName()])) {
+                                    NPC::$timer[$NPC->getId()][$player->getName()] = microtime(true);
+                                    /* Execute commands for the player */
+                                    foreach (NPC::get($NPC, 'Commands') as $command) {
+                                        /* Replace tags in command before execution */
+                                        foreach (["{player}" => '"' . $player->getName() . '"', "{rca}" => 'rca'] as $search => $replace) {
+                                            $command = str_replace($search, $replace, $command);
                                         }
-                                        $event->setCancelled(true);
-                                        return;
+                                        Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), $command);
                                     }
-                                    if ((NPC::$timer[$npc->getId()][$player->getName()] + (float)$setting > (microtime(true)))) {
-                                        $player->sendTip(NPC::$settings->get('cooldown-message'));
-                                        $event->setCancelled(true);
-                                        return;
-                                    } else {
-                                        NPC::$timer[$npc->getId()][$player->getName()] = microtime(true);
-                                    }
+                                    $event->setCancelled(true);
+                                    return;
+                                }
+                                if ((NPC::$timer[$NPC->getId()][$player->getName()] + (float)$setting > (microtime(true)))) {
+                                    $player->sendPopup(NPC::$settings->get('cooldown-message'));
+                                    $event->setCancelled(true);
+                                    return;
+                                } else {
+                                    NPC::$timer[$NPC->getId()][$player->getName()] = microtime(true);
                                 }
                             }
                         }
-                        foreach (self::$session::getCommands($npc) as $command) {
-                            $command = str_replace("{player}", '"' . $player->getName() . '"', $command);
-                            $command = str_replace("{rca}", 'rca', $command);
+                        /* So here is for those NPCs haven't cool-sown set */
+                        foreach (NPC::get($NPC, 'Commands') as $command) {
+                            /* Replace tags in command before execution */
+                            foreach (["{player}" => '"' . $player->getName() . '"', "{rca}" => 'rca'] as $search => $replace) {
+                                $command = str_replace($search, $replace, $command);
+                            }
                             Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), $command);
                         }
                     }
@@ -96,32 +92,38 @@ class EventsHandler implements Listener
     /**
      * @param PlayerMoveEvent $event
      */
-    public function NPCRotation(PlayerMoveEvent $event)
+    public function NPCRotation (PlayerMoveEvent $event)
     {
         $player = $event->getPlayer();
         $from = $event->getFrom();
         $to = $event->getTo();
         $maxDistance = NPC::$settings->get('rotation-distance');
 
-        if ($from->distance($to) < 0.1) return;
+        if (is_bool($maxDistance)) {
+            $maxDistance = 7;
+        }
 
-        foreach ($player->getLevel()->getNearbyEntities($player->getBoundingBox()->expandedCopy($maxDistance, $maxDistance, $maxDistance), $player) as $npc) {
+        if ($from->distance($to) < 0.1) {
+            /* Its joke time: This is too close, get away from me.  ( LMAO pls do not swearing me ) */
+            return;
+        }
 
-            if ($npc instanceof CustomNPC) {
-                if (self::$session::isSettingExists($npc, 'rotation')) {
-                    $angle = atan2($player->z - $npc->z, $player->x - $npc->x);
+        foreach ($player->getLevel()->getNearbyEntities($player->getBoundingBox()->expandedCopy($maxDistance, $maxDistance, $maxDistance), $player) as $NPC) {
+            if ($NPC instanceof CustomNPC) {
+                if (NPC::isset($NPC, 'rotation', 'Settings')) {
+                    $angle = atan2($player->z - $NPC->z, $player->x - $NPC->x);
                     $yaw = (($angle * 180) / M_PI) - 90;
-                    $dist = (new Vector2($npc->x, $npc->z))->distance($player->x, $player->z);
-                    $angle = atan2($dist, $player->y - $npc->y);
+                    $dist = (new Vector2($NPC->x, $NPC->z))->distance($player->x, $player->z);
+                    $angle = atan2($dist, $player->y - $NPC->y);
                     $pitch = (($angle * 180) / M_PI) - 90;
 
                     $pk = new MovePlayerPacket();
-                    $pk->entityRuntimeId = $npc->getId();
-                    $pk->position = $npc->asVector3()->add(0, 1.6, /* When NPC size increase and if rotation be on for NPC, NPC move in air, but now its fixed */ 0);
+                    $pk->entityRuntimeId = $NPC->getId();
+                    $pk->position = $NPC->asVector3()->add(0, 1.6, /* When NPC size increase and if rotation be on for NPC, NPC move in air, but now its fixed */ 0);
                     $pk->yaw = $yaw;
                     $pk->pitch = $pitch;
                     $pk->headYaw = $yaw;
-                    $pk->onGround = $npc->onGround;
+                    $pk->onGround = $NPC->onGround;
                     $player->dataPacket($pk);
                 }
             }
@@ -162,14 +164,14 @@ class EventsHandler implements Listener
         $message = $event->getMessage();
         $level = $player->getLevel();
 
-        if (preg_match('/here/i', $message) and strlen($message) <= 4) { /* Maybe the player uses different formats for chatting?! */
-            if (self::$session::isTeleporting($player)) {
-                if (!is_null($npc = $level->getEntity(NPC::$teleport[$player->getName()]))) {
-                    $npc->teleport($player->asVector3());
-                    $npc->yaw = $player->getYaw();
-                    $npc->pitch = $player->getPitch();
-                    $player->sendMessage(NPC::PREFIX . COLOR::GREEN . 'NPC ' . COLOR::AQUA . NPC::$teleport[$player->getName()] . COLOR::GREEN . self::$lang::get(self::$lang::NPC_TELEPORT));
-                    self::$session::setTeleporting($player, false, 0);
+        if (preg_match('/here/i', $message) and strlen($message) <= 10) { /* I don't know, Mybe who teleports NPC, used color format (Like: §l§a) */
+            if (isset(NPC::$teleport[$player->getName()])) {
+                if (!is_null($NPC = $level->getEntity(NPC::$teleport[$player->getName()]))) {
+                    $NPC->teleport($player->asVector3());
+                    $NPC->yaw = $player->getYaw();
+                    $NPC->pitch = $player->getPitch();
+                    $player->sendMessage(NPC::PREFIX . COLOR::GREEN . 'NPC ' . COLOR::AQUA . NPC::$teleport[$player->getName()] . COLOR::GREEN . Language::translated(Language::NPC_TELEPORT));
+                    unset(NPC::$teleport[$player->getName()]);
                 }
                 $event->setCancelled(true);
             }
