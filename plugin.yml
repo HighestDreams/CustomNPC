@@ -10,7 +10,7 @@ main: HighestDreams\CustomNPC\NPC
 api: 3.0.0
 commands:
   rca:
-    description: Run a command from a player
+    description: "Run a command from a player"
     permission: customnpc.rca.permission
     usage: /rca <player-name> <command-for-execute)
   npc:
