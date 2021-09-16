@@ -96,12 +96,14 @@ class SettingsManager
         foreach (Server::getInstance()->getOnlinePlayers() as $p) {
             $this->players[] = $p->getName();
         }
+
+        $getSettings = NPC::get($NPC, 'Settings');
+        
         /**
          * @return float|void
          */
-        $getCooldown = function () use ($NPC) {
-            $total = NPC::get($NPC, 'Settings');
-            foreach ($total as $setting) {
+        $getCooldown = function () use ($NPC, $getSettings) {
+            foreach ($getSettings as $setting) {
                 if (is_numeric($setting)) {
                     return (float)$setting;
                 }
@@ -114,7 +116,7 @@ class SettingsManager
             $emotesList[] = $emote;
         }
 
-        $form = (new FormAPI())->createCustomForm(function (Player $player, $data = null) use ($NPC, $getRotation, $getCooldown, $emotesList) {
+        $form = (new FormAPI())->createCustomForm(function (Player $player, $data = null) use ($NPC, $getRotation, $getCooldown, $emotesList, $getSettings) {
             if (is_null($data)) {
                 $this->send($player, $NPC);
                 return;
@@ -126,7 +128,7 @@ class SettingsManager
             }
 
             if (is_numeric($data[3])) {
-                foreach (NPC::get($NPC, 'Settings') as $setting) {
+                foreach ($getSettings as $setting) {
                     if (is_numeric($setting)) {
                         NPC::remove($NPC, $setting, 'Settings');
                     }
@@ -135,7 +137,7 @@ class SettingsManager
             }
 
             if (!NPC::isset($NPC, $emotesList[$data[5]], 'Settings')) {
-                foreach (NPC::get($NPC, 'Settings') as $setting) {
+                foreach ($getSettings as $setting) {
                     if (in_array($setting, $emotesList)) {
                         NPC::remove($NPC, $setting, 'Settings');
                     }
