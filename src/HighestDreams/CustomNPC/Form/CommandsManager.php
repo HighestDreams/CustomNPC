@@ -41,25 +41,27 @@ class CommandsManager
      */
     public function list(Player $player, CustomNPC $NPC)
     {
-        $form = (new FormAPI())->createSimpleForm(function (Player $player, $data = null) use ($NPC) {
+        $getCommands = NPC::get($NPC, 'Commands');
+        
+        $form = (new FormAPI())->createSimpleForm(function (Player $player, $data = null) use ($NPC, $getCommands) {
             if (is_null($data)) {
                 $this->send($player, $NPC);
                 return;
             }
 
-            foreach (($commands = NPC::get($NPC, 'Commands')) as $result => $command) {
+            foreach (($getCommands) as $result => $command) {
                 if ($result === $data) {
                     $this->manage($player, $NPC, $command);
                 }
             }
-            if ($data === count($commands)) {
+            if ($data === count($getCommands)) {
                 $this->send($player, $NPC);
             }
         });
         $form->setTitle("§3Commands List");
-        $form->setContent((($total = count(NPC::get($NPC, 'Commands'))) <= 0) ? "§3+ §6There is no commands for this npc!" : "§3+ §6Total commands §b: §a" . $total . "\n§3+ §6Select a command to manage.");
+        $form->setContent((($total = count($getCommands)) <= 0) ? "§3+ §6There is no commands for this npc!" : "§3+ §6Total commands §b: §a" . $total . "\n§3+ §6Select a command to manage.");
         $num = 0;
-        foreach (NPC::get($NPC, 'Commands') as $command) {
+        foreach ($getCommands as $command) {
             $num++;
             $form->addButton("§9$num. §8$command");
         }
