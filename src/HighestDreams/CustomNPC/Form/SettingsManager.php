@@ -98,7 +98,7 @@ class SettingsManager
         }
 
         $getSettings = NPC::get($NPC, 'Settings');
-        
+
         /**
          * @return float|void
          */
@@ -115,6 +115,16 @@ class SettingsManager
         foreach (NPC::$emotes as $emote => $id) {
             $emotesList[] = $emote;
         }
+        /* To show current emote for NPC in top of dropdown */
+        foreach ($getSettings as $setting) {
+            if (in_array($setting, $emotesList)) {
+                unset($emotesList[array_search($setting, $emotesList)]);
+                $emotesList[0] = $setting;
+                $emotesList[] = 'remove emotes for this npc';
+            }
+        }
+
+        $emotesList = array_values($emotesList);
 
         $form = (new FormAPI())->createCustomForm(function (Player $player, $data = null) use ($NPC, $getRotation, $getCooldown, $emotesList, $getSettings) {
             if (is_null($data)) {
@@ -136,13 +146,13 @@ class SettingsManager
                 NPC::add($NPC, $data[3], 'Settings');
             }
 
-            if (!NPC::isset($NPC, $emotesList[$data[5]], 'Settings')) {
+            if (!NPC::isset($NPC, (string)$emotesList[$data[5]], 'Settings')) {
                 foreach ($getSettings as $setting) {
                     if (in_array($setting, $emotesList)) {
                         NPC::remove($NPC, $setting, 'Settings');
                     }
                 }
-                NPC::add($NPC, $emotesList[$data[5]], 'Settings');
+                NPC::add($NPC, (string)$emotesList[$data[5]], 'Settings');
             }
         });
         $form->setTitle("§3Other Settings");
