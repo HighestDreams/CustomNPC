@@ -71,6 +71,7 @@ class SettingsManager
                     $NPC->setSkin(new Skin($target->getSkin()->getSkinId(), $target->getSkin()->getSkinData(), $target->getSkin()->getCapeData(), $target->getSkin()->getGeometryName(), $target->getSkin()->getGeometryData()));
                     $NPC->sendSkin();
                 } else {
+                    // Mybe target leave the game, so that's wht its here :p
                     $player->sendMessage(NPC::PREFIX . COLOR::RED . "Player §b{$this->players[$data[5]]} §cis not online!");
                 }
             }
@@ -118,9 +119,9 @@ class SettingsManager
                 $this->send($player, $NPC);
                 return;
             }
-            if ($data[1] === true and !NPC::isset($NPC, 'rotation', 'Settings')) {
+            if ($data[1] === true and $getRotation === false) {
                 NPC::add($NPC, 'rotation', 'Settings');
-            } elseif ($data[1] === false and NPC::isset($NPC, 'rotation', 'Settings') === true) {
+            } elseif ($data[1] === false and $getRotation === true) {
                 NPC::remove($NPC, 'rotation', 'Settings');
             }
 
