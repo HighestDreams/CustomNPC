@@ -13,6 +13,6 @@ rotation-distance: 7
 # Je (Japanese)
 # Ko (Korean)
 # Fr (French)
-language: "En"
+language: "En" # Not sensitive to uppercase and lowercase letters!
 # Set a timer for NPCs to do emotes ( 10 = every 10 seconds those NPCs have emotes will do emote ).
 emote-timer: 10
