@@ -4,7 +4,7 @@
 #=========================================#
 name: CustomNPC
 author: HighestDreams
-mcpe-protocol: [361, 388, 389, 390, 407, 408, 440, 448]
+mcpe-protocol: [361, 388, 389, 390, 407, 408, 440, 448, 465]
 version: 1.1.0 #Blame poggit reviewers (Didn't noticed this!)
 main: HighestDreams\CustomNPC\NPC
 api: 3.0.0
