@@ -181,7 +181,9 @@ class EventsHandler implements Listener
                     if (NPC::isset($NPC, 'pair_interactions_with_commands', 'Settings')) {
                         $this->execute($player, $NPC, $event, 'Commands');
                     } else {
-                        $this->execute($player, $NPC, $event, 'Interactions');
+                        if(count(NPC::get($NPC, 'Interactions')) >= 1) {
+                            $this->execute($player, $NPC, $event, 'Interactions');
+                        }
                     }
                 }
             }
