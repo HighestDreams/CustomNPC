@@ -8,6 +8,7 @@ mcpe-protocol: [361, 388, 389, 390, 407, 408, 440, 448, 465, 471]
 version: 1.2.0
 main: HighestDreams\CustomNPC\NPC
 api: 3.0.0
+website: https://github.com/HighestDreams/CUstomNPC
 commands:
   rca:
     description: "Run a command from a player"

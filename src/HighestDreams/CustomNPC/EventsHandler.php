@@ -8,13 +8,16 @@ namespace HighestDreams\CustomNPC;
 use HighestDreams\CustomNPC\Entity\CustomNPC;
 use HighestDreams\CustomNPC\Form\CustomizeMain;
 use pocketmine\command\ConsoleCommandSender;
+use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntitySpawnEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerMoveEvent;
+use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\math\Vector2;
+use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\MovePlayerPacket;
 use pocketmine\Player;
 use pocketmine\Server;
@@ -46,46 +49,56 @@ class EventsHandler implements Listener
                 } else {
                     /* If commands added before to the clicked NPC */
                     if (isset(NPC::$editor[array_search($player->getName(), NPC::$editor)])) {
-                        /* If clicked person (Is op or they have customNPCs permission) */
+                        /* If clicked person (Is Op or they have customNPCs permission) */
                         (new CustomizeMain())->send($player, $NPC);
                     } else { /* Now it's time for execute for the player */
-                        /* Cool-down */
-                        foreach (NPC::get($NPC, 'Settings') as $setting) {
-                            if (is_numeric($setting) and (int)$setting > 0) {
-                                if (!isset(NPC::$timer[$NPC->getId()][$player->getName()])) {
-                                    NPC::$timer[$NPC->getId()][$player->getName()] = microtime(true);
-                                    /* Execute commands for the player */
-                                    foreach (NPC::get($NPC, 'Commands') as $command) {
-                                        /* Replace tags in command before execution */
-                                        foreach (["{player}" => '"' . $player->getName() . '"', "{rca}" => 'rca'] as $search => $replace) {
-                                            $command = str_replace($search, $replace, $command);
-                                        }
-                                        Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), $command);
-                                    }
-                                    $event->setCancelled(true);
-                                    return;
-                                }
-                                if ((NPC::$timer[$NPC->getId()][$player->getName()] + (float)$setting > (microtime(true)))) {
-                                    $player->sendPopup(NPC::$settings->get('cooldown-message'));
-                                    $event->setCancelled(true);
-                                    return;
-                                } else {
-                                    NPC::$timer[$NPC->getId()][$player->getName()] = microtime(true);
-                                }
-                            }
-                        }
-                        /* So here is for those NPCs haven't cool-sown set */
-                        foreach (NPC::get($NPC, 'Commands') as $command) {
-                            /* Replace tags in command before execution */
-                            foreach (["{player}" => '"' . $player->getName() . '"', "{rca}" => 'rca'] as $search => $replace) {
-                                $command = str_replace($search, $replace, $command);
-                            }
-                            Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), $command);
-                        }
+                        $this->execute($player, $NPC, $event, 'Commands');
                     }
                 }
             }
             $event->setCancelled(true);
+        }
+    }
+
+    /**
+     * @param Player $player
+     * @param CustomNPC $NPC
+     * @param $event
+     * @param string $tag
+     */
+    public function execute (Player $player, CustomNPC $NPC, $event, string $tag) {
+        /* Cool-down */
+        foreach (NPC::get($NPC, 'Settings') as $setting) {
+            if (is_numeric($setting) and (int)$setting > 0) {
+                if (!isset(NPC::$timer[$NPC->getId()][$player->getName()])) {
+                    NPC::$timer[$NPC->getId()][$player->getName()] = microtime(true);
+                    /* Execute Tags for the player */
+                    foreach (NPC::get($NPC, $tag) as $tags) {
+                        /* Replace tags in command before execution */
+                        foreach (["{player}" => '"' . $player->getName() . '"', "{rca}" => 'rca'] as $search => $replace) {
+                            $tags = str_replace($search, $replace, $tags);
+                        }
+                        Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), $tags);
+                    }
+                    $event->setCancelled(true);
+                    return;
+                }
+                if ((NPC::$timer[$NPC->getId()][$player->getName()] + (float)$setting > (microtime(true)))) {
+                    $player->sendPopup(NPC::$settings->get('cooldown-message'));
+                    $event->setCancelled(true);
+                    return;
+                } else {
+                    NPC::$timer[$NPC->getId()][$player->getName()] = microtime(true);
+                }
+            }
+        }
+        /* So here is for those NPCs haven't cool-sown set */
+        foreach (NPC::get($NPC, $tag) as $tags) {
+            /* Replace tags in command before execution */
+            foreach (["{player}" => '"' . $player->getName() . '"', "{rca}" => 'rca'] as $search => $replace) {
+                $tags = str_replace($search, $replace, $tags);
+            }
+            Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), $tags);
         }
     }
 
@@ -104,7 +117,7 @@ class EventsHandler implements Listener
         }
 
         if ($from->distance($to) < 0.1) {
-            /* Its joke time: This is too close, get away from me.  ( LMAO pls do not swearing me ) */
+            /* Its joke time: This is too close, get away from me.  ( LMAO pls do not swear me, Ik it was cringe ) */
             return;
         }
 
@@ -151,6 +164,28 @@ class EventsHandler implements Listener
         if ($event->getEntity() instanceof CustomNPC) {
             if (!$event instanceof EntityDamageByEntityEvent) {
                 $event->setCancelled(true);
+            }
+        }
+    }
+
+    /**
+     * @param DataPacketReceiveEvent $event
+     */
+    public function onDataPkReceive (DataPacketReceiveEvent $event) {
+        $player = $event->getPlayer();
+        $pk = $event->getPacket();
+        if ($pk instanceof InventoryTransactionPacket and $pk->trData instanceof UseItemOnEntityTransactionData) {
+            if ($pk->trData->getActionType() === UseItemOnEntityTransactionData::ACTION_INTERACT) {
+                $NPC = Server::getInstance()->findEntity($pk->trData->getEntityRuntimeId());
+                if ($NPC instanceof CustomNPC) {
+                    if (NPC::isset($NPC, 'pair_interactions_with_commands', 'Settings')) {
+                        $this->execute($player, $NPC, $event, 'Commands');
+                    } else {
+                        if(count(NPC::get($NPC, 'Interactions')) >= 1) {
+                            $this->execute($player, $NPC, $event, 'Interactions');
+                        }
+                    }
+                }
             }
         }
     }
