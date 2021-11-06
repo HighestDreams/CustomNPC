@@ -29,10 +29,13 @@ class CustomizeMain
                     (new CommandsManager())->send($player, $NPC);
                     break;
                 case 2:
+                    (new InteractionsManager())->send($player, $NPC);
+                    break;
+                case 3:
                     NPC::$teleport[$player->getName()] = $NPC->getId();
                     $player->sendMessage(NPC::PREFIX . COLOR::GREEN . Language::translated(Language::NPC_TELEPORT_TUTORIAL));
                     break;
-                case 3:
+                case 4:
                     $this->delete($player, $NPC);
                     break;
             }
@@ -41,6 +44,7 @@ class CustomizeMain
         $form->setContent("§3+ §6NPC ID §b: §a" . $NPC->getId());
         $form->addButton('§8§lManage settings');
         $form->addButton('§8§lManage commands');
+        $form->addButton('§8§lManage interactions');
         $form->addButton('§8§lTeleport NPC');
         $form->addButton('§cDelete NPC');
         $form->sendToPlayer($player);
