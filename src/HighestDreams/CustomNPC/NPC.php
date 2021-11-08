@@ -38,6 +38,8 @@ class NPC extends PluginBase
 
         $seconds = self::$settings->get('emote-timer');
         $this->getScheduler()->scheduleRepeatingTask(new EmoteTimer(), (is_bool($seconds) ? 10 : $seconds) * 20);
+        $seconds = self::$settings->get('colorful-timer');
+        $this->getScheduler()->scheduleRepeatingTask(new ColorfulTimer(), (is_bool($seconds) ? 1 : $seconds) * 20);
     }
 
     /**

@@ -26,21 +26,51 @@ class SettingsManager
 
             switch ($data) {
                 case 0:
-                    $this->General($player, $NPC);
+                    $this->nameTag($player, $NPC);
                     break;
-                case 1:
-                    $this->Other($player, $NPC);
-                    break;
-                case 2:
+                case 3:
                     (new CustomizeMain())->send($player, $NPC);
                     break;
             }
         });
         $form->setTitle("§3Settings Manager");
         $form->setContent("§3+ §6NPC ID §b: §a" . $NPC->getId());
-        $form->addButton('§8General');
-        $form->addButton('§8Other');
+        $form->addButton('§8§lNameTag');
+        $form->addButton('§8§lSkin');
+        $form->addButton('§8§lOther');
         $form->addButton('§cBack');
+        $form->sendToPlayer($player);
+    }
+
+    public function nameTag(Player $player, CustomNPC $NPC)
+    {
+        $form = (new FormAPI())->createCustomForm(function (Player $player, $data = null) use ($NPC) {
+            if (is_null($data)) {
+                $this->send($player, $NPC);
+                return;
+            }
+            # NameTag
+            if (($NameTag = $data[1]) !== $NPC->getName()) {
+                $NPC->setNameTag(str_replace('{line}', "\n", $NameTag));
+                $NPC->setNameTagAlwaysVisible(!empty($NameTag));
+            }
+            # Colorful NameTag
+            for ($i = 3; $i < 4; $i++) {
+                if ($data[$i] === true) {
+                    if (!NPC::isset($NPC, 'shuffle', 'Settings')) {
+                        NPC::add($NPC, 'shuffle', 'Settings');
+                    }
+                    break;
+                } elseif (!$data[$i] and NPC::isset($NPC, 'shuffle', 'Settings')) {
+                    NPC::remove($NPC, 'shuffle', 'Settings');
+                }
+            }
+        });
+        $form->setTitle("§3General Settings");
+        $form->addLabel('§3+ §6Change NPC Name (Leave it empty to hide NPC nameTag).');
+        $form->addInput('§fNew Name : ', "Type a new name for NPC#{$NPC->getId()}", $NPC->getName());
+        $form->addLabel('§3+ §6Colorful Name Tag (Only one type you can choose).');
+        $form->addToggle('Shuffle ', NPC::isset($NPC, 'shuffle', 'Settings'));
         $form->sendToPlayer($player);
     }
 
