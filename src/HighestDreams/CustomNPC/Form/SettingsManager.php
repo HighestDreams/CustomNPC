@@ -42,9 +42,14 @@ class SettingsManager
         $form->sendToPlayer($player);
     }
 
+    /**
+     * @param Player $player
+     * @param CustomNPC $NPC
+     */
     public function nameTag(Player $player, CustomNPC $NPC)
     {
-        $form = (new FormAPI())->createCustomForm(function (Player $player, $data = null) use ($NPC) {
+        $get = NPC::get($NPC, 'Settings');
+        $form = (new FormAPI())->createCustomForm(function (Player $player, $data = null) use ($NPC, $get) {
             if (is_null($data)) {
                 $this->send($player, $NPC);
                 return;
@@ -55,22 +60,32 @@ class SettingsManager
                 $NPC->setNameTagAlwaysVisible(!empty($NameTag));
             }
             # Colorful NameTag
-            for ($i = 3; $i < 4; $i++) {
+            for ($i = 3; $i <= count(NPC::$colorTypes) + 2; $i++) {
                 if ($data[$i] === true) {
-                    if (!NPC::isset($NPC, 'shuffle', 'Settings')) {
-                        NPC::add($NPC, 'shuffle', 'Settings');
+                    if (empty(preg_grep('/' . NPC::$colorTypes[$i - 3] . '/i', $get))) {
+                        foreach (preg_grep('/\$!_#\$/i', $get) as $colorType) {
+                            NPC::remove($NPC, $colorType, 'Settings');
+                        }
+                        NPC::add($NPC, NPC::$colorTypes[$i - 3] . "$!_#$$data[7]", 'Settings');
                     }
                     break;
-                } elseif (!$data[$i] and NPC::isset($NPC, 'shuffle', 'Settings')) {
-                    NPC::remove($NPC, 'shuffle', 'Settings');
+                } elseif (!$data[$i] and !empty(preg_grep('/' . NPC::$colorTypes[$i - 3] . '/i', $get))) {
+                    NPC::remove($NPC, preg_grep('/' . NPC::$colorTypes[$i - 3] . '\$!_#\$.+/i', $get)[0], 'Settings');
                 }
             }
         });
-        $form->setTitle("§3General Settings");
+        $form->setTitle("§3NameTag Settings");
         $form->addLabel('§3+ §6Change NPC Name (Leave it empty to hide NPC nameTag).');
         $form->addInput('§fNew Name : ', "Type a new name for NPC#{$NPC->getId()}", $NPC->getName());
         $form->addLabel('§3+ §6Colorful Name Tag (Only one type you can choose).');
-        $form->addToggle('Shuffle ', NPC::isset($NPC, 'shuffle', 'Settings'));
+        foreach (NPC::$colorTypes as $toggle) {
+            $form->addToggle(ucfirst($toggle), !empty(preg_grep("/$toggle/i", $get)));
+        }
+        $form->addLabel('§3+ §6Write a text (If you want to colorize ONLY special text or Leave it empty to colorize Full NameTag).');
+        if (!empty($result = preg_grep('/\$!_#\$/i', $get)) ) {
+            $result = explode('$!_#$', $result[0])[1];
+        }
+        $form->addInput('§fSpecial text : ', "Type a special text to colorize.", is_array($result) ? '' : $result);
         $form->sendToPlayer($player);
     }
 
