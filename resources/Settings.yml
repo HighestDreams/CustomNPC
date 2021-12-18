@@ -16,5 +16,3 @@ rotation-distance: 7
 language: "En" # Not sensitive to uppercase and lowercase letters!
 # Set a timer for NPCs to do emotes ( 10 = every 10 seconds those NPCs have emotes will do emote ).
 emote-timer: 10
-# Set a timer for NPCs to change nametag color ( 1 = one second ).
-colorful-timer: 1

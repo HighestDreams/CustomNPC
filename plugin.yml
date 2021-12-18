@@ -1,28 +1,36 @@
 ---
-#=========================================#
-# Plugin Custom NPC Made By HighestDreams #
-#=========================================#
 name: CustomNPC
 author: HighestDreams
-mcpe-protocol: [361, 388, 389, 390, 407, 408, 440, 448, 465, 471]
+mcpe-protocol:
+- 361
+- 388
+- 389
+- 390
+- 407
+- 408
+- 440
+- 448
+- 465
+- 471
+- 475
 version: 1.2.0
 main: HighestDreams\CustomNPC\NPC
-api: 3.0.0
+api:
+- 3.0.0
 website: https://github.com/HighestDreams/CUstomNPC
 commands:
   rca:
-    description: "Run a command from a player"
+    description: Run a command from a player
     permission: customnpc.rca.permission
     usage: /rca <player-name> <command-for-execute)
   npc:
-    description: "Spawn custom npc"
+    description: Spawn custom npc
     permission: customnpc.permission
-
 permissions:
   customnpc.rca.permission:
-    description: "Allows the user to use /rca command"
+    description: Allows the user to use /rca command
     default: op
   customnpc.permission:
-    description: "Allows the user to use /npc command (To spawn NPC & Edit NPC)"
+    description: Allows the user to use /npc command (To spawn NPC & Edit NPC)
     default: op
 ...

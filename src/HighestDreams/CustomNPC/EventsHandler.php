@@ -26,37 +26,36 @@ use pocketmine\utils\TextFormat as COLOR;
 class EventsHandler implements Listener
 {
 
+    public $main;
+
+    public function __construct(NPC $main)
+    {
+        $this->main = $main;
+    }
+
     /**
      * @param EntityDamageByEntityEvent $event
      */
-    public function onHitNPC (EntityDamageByEntityEvent $event)
+    public function EntityDamageByEntityEvent (EntityDamageByEntityEvent $event)
     {
         $player = $event->getDamager();
         $NPC = $event->getEntity();
 
-        if ($NPC instanceof CustomNPC) {
-            if ($player instanceof Player) {
-                /* If never added command to NPC (Like spawned NPC for the first time) */
-                if (is_null($NPC->namedtag->getCompoundTag("Commands"))) {
-                    if ($player->hasPermission('customNPC.permission')) {
-                        /* If clicked person (Is op or they have customNPCs permission) */
-                        if (!isset(NPC::$editor[array_search($player->getName(), NPC::$editor)])) {
-                            $player->sendMessage(NPC::PREFIX . COLOR::GREEN . Language::translated(Language::NPC_NEVER_ADDED_COMMAND));
-                        } else {
-                            (new CustomizeMain())->send($player, $NPC);
-                        }
-                    }
-                } else {
-                    /* If commands added before to the clicked NPC */
-                    if (isset(NPC::$editor[array_search($player->getName(), NPC::$editor)])) {
-                        /* If clicked person (Is Op or they have customNPCs permission) */
-                        (new CustomizeMain())->send($player, $NPC);
-                    } else { /* Now it's time for execute for the player */
-                        $this->execute($player, $NPC, $event, 'Commands');
-                    }
-                }
-            }
+        if ($NPC instanceof CustomNPC and $player instanceof Player) {
             $event->setCancelled(true);
+
+            if ($this->main->isEditor($player)) {
+                (new CustomizeMain())->send($player, $NPC);
+                return;
+            }
+
+            if ($this->main->spawnedForFistTime($NPC)) {
+                if ($player->hasPermission('customNPC.permission')) { # Send tip to enable editor mode.
+                    $player->sendMessage(NPC::PREFIX . COLOR::GREEN . Language::translated(Language::NPC_NEVER_ADDED_COMMAND));
+                }
+                return;
+            }
+            $this->execute($player, $NPC, $event, 'Commands');
         }
     }
 
@@ -67,39 +66,24 @@ class EventsHandler implements Listener
      * @param string $tag
      */
     public function execute (Player $player, CustomNPC $NPC, $event, string $tag) {
-        /* Cool-down */
-        foreach (NPC::get($NPC, 'Settings') as $setting) {
-            if (is_numeric($setting) and (int)$setting > 0) {
-                if (!isset(NPC::$timer[$NPC->getId()][$player->getName()])) {
-                    NPC::$timer[$NPC->getId()][$player->getName()] = microtime(true);
-                    /* Execute Tags for the player */
-                    foreach (NPC::get($NPC, $tag) as $tags) {
-                        /* Replace tags in command before execution */
-                        foreach (["{player}" => '"' . $player->getName() . '"', "{rca}" => 'rca'] as $search => $replace) {
-                            $tags = str_replace($search, $replace, $tags);
-                        }
-                        Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), $tags);
-                    }
-                    $event->setCancelled(true);
-                    return;
-                }
-                if ((NPC::$timer[$NPC->getId()][$player->getName()] + (float)$setting > (microtime(true)))) {
-                    $player->sendPopup(NPC::$settings->get('cooldown-message'));
-                    $event->setCancelled(true);
-                    return;
-                } else {
-                    NPC::$timer[$NPC->getId()][$player->getName()] = microtime(true);
-                }
+        # Cooldown stuff.
+        if ($this->main->getNPCCooldown($NPC) > 0) { # If npc has cooldown.
+            if (isset(NPC::$timer[$NPC->getId()][$player->getName()]) and (NPC::$timer[$NPC->getId()][$player->getName()] + $this->main->getNPCCooldown($NPC) > (microtime(true)))) {
+                $player->sendPopup(NPC::$settings->get('cooldown-message'));
+                $event->setCancelled(true);
+                return;
             }
+            NPC::$timer[$NPC->getId()][$player->getName()] = microtime(true);
         }
-        /* So here is for those NPCs haven't cool-sown set */
+
+        # Tags (Commands/Interactions) Execution.
         foreach (NPC::get($NPC, $tag) as $tags) {
-            /* Replace tags in command before execution */
             foreach (["{player}" => '"' . $player->getName() . '"', "{rca}" => 'rca'] as $search => $replace) {
                 $tags = str_replace($search, $replace, $tags);
             }
             Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), $tags);
         }
+        $event->setCancelled(true);
     }
 
     /**
@@ -121,6 +105,7 @@ class EventsHandler implements Listener
             return;
         }
 
+        # Shitty code :(
         foreach ($player->getLevel()->getNearbyEntities($player->getBoundingBox()->expandedCopy($maxDistance, $maxDistance, $maxDistance), $player) as $NPC) {
             if ($NPC instanceof CustomNPC) {
                 if (NPC::isset($NPC, 'rotation', 'Settings')) {
@@ -149,7 +134,6 @@ class EventsHandler implements Listener
     public function onNPCSpawn(EntitySpawnEvent $event)
     {
         if ($event->getEntity() instanceof CustomNPC) {
-            /* Clear lag plugin won't kill NPC (Code from Slapper plugin!) */
             if (!is_null($clearLag = Server::getInstance()->getPluginManager()->getPlugin("ClearLagg"))) {
                 $clearLag->exemptEntity($event->getEntity());
             }
@@ -196,17 +180,16 @@ class EventsHandler implements Listener
     public function onChat(PlayerChatEvent $event)
     {
         $player = $event->getPlayer();
-        $message = $event->getMessage();
-        $level = $player->getLevel();
-
-        if (preg_match('/here/i', $message) and strlen($message) <= 10) { /* I don't know, Mybe who teleports NPC, used color format (Like: §l§a) */
+        if (preg_replace('/§./i', '', $event->getMessage()) === "here") {
             if (isset(NPC::$teleport[$player->getName()])) {
-                if (!is_null($NPC = $level->getEntity(NPC::$teleport[$player->getName()]))) {
-                    $NPC->teleport($player->asVector3());
+                if (!is_null($NPC = $player->getLevel()->getEntity(NPC::$teleport[$player->getName()]))) {
+                    $NPC->teleport($player->asPosition());
                     $NPC->yaw = $player->getYaw();
                     $NPC->pitch = $player->getPitch();
                     $player->sendMessage(NPC::PREFIX . COLOR::GREEN . 'NPC ' . COLOR::AQUA . NPC::$teleport[$player->getName()] . COLOR::GREEN . Language::translated(Language::NPC_TELEPORT));
                     unset(NPC::$teleport[$player->getName()]);
+                } else {
+                    $player->sendMessage(NPC::PREFIX . COLOR::RED . "You can't teleport NPCs to another levels.");
                 }
                 $event->setCancelled(true);
             }

@@ -26,66 +26,21 @@ class SettingsManager
 
             switch ($data) {
                 case 0:
-                    $this->nameTag($player, $NPC);
+                    $this->General($player, $NPC);
                     break;
-                case 3:
+                case 1:
+                    $this->Other($player, $NPC);
+                    break;
+                case 2:
                     (new CustomizeMain())->send($player, $NPC);
                     break;
             }
         });
         $form->setTitle("§3Settings Manager");
         $form->setContent("§3+ §6NPC ID §b: §a" . $NPC->getId());
-        $form->addButton('§8§lNameTag');
-        $form->addButton('§8§lSkin');
-        $form->addButton('§8§lOther');
+        $form->addButton('§8General');
+        $form->addButton('§8Other');
         $form->addButton('§cBack');
-        $form->sendToPlayer($player);
-    }
-
-    /**
-     * @param Player $player
-     * @param CustomNPC $NPC
-     */
-    public function nameTag(Player $player, CustomNPC $NPC)
-    {
-        $get = NPC::get($NPC, 'Settings');
-        $form = (new FormAPI())->createCustomForm(function (Player $player, $data = null) use ($NPC, $get) {
-            if (is_null($data)) {
-                $this->send($player, $NPC);
-                return;
-            }
-            # NameTag
-            if (($NameTag = $data[1]) !== $NPC->getName()) {
-                $NPC->setNameTag(str_replace('{line}', "\n", $NameTag));
-                $NPC->setNameTagAlwaysVisible(!empty($NameTag));
-            }
-            # Colorful NameTag
-            for ($i = 3; $i <= count(NPC::$colorTypes) + 2; $i++) {
-                if ($data[$i] === true) {
-                    if (empty(preg_grep('/' . NPC::$colorTypes[$i - 3] . '/i', $get))) {
-                        foreach (preg_grep('/\$!_#\$/i', $get) as $colorType) {
-                            NPC::remove($NPC, $colorType, 'Settings');
-                        }
-                        NPC::add($NPC, NPC::$colorTypes[$i - 3] . "$!_#$$data[7]", 'Settings');
-                    }
-                    break;
-                } elseif (!$data[$i] and !empty(preg_grep('/' . NPC::$colorTypes[$i - 3] . '/i', $get))) {
-                    NPC::remove($NPC, preg_grep('/' . NPC::$colorTypes[$i - 3] . '\$!_#\$.+/i', $get)[0], 'Settings');
-                }
-            }
-        });
-        $form->setTitle("§3NameTag Settings");
-        $form->addLabel('§3+ §6Change NPC Name (Leave it empty to hide NPC nameTag).');
-        $form->addInput('§fNew Name : ', "Type a new name for NPC#{$NPC->getId()}", $NPC->getName());
-        $form->addLabel('§3+ §6Colorful Name Tag (Only one type you can choose).');
-        foreach (NPC::$colorTypes as $toggle) {
-            $form->addToggle(ucfirst($toggle), !empty(preg_grep("/$toggle/i", $get)));
-        }
-        $form->addLabel('§3+ §6Write a text (If you want to colorize ONLY special text or Leave it empty to colorize Full NameTag).');
-        if (!empty($result = preg_grep('/\$!_#\$/i', $get)) ) {
-            $result = explode('$!_#$', $result[0])[1];
-        }
-        $form->addInput('§fSpecial text : ', "Type a special text to colorize.", is_array($result) ? '' : $result);
         $form->sendToPlayer($player);
     }
 

@@ -34,12 +34,10 @@ class NPC extends PluginBase
         self::$settings = new Config($this->getDataFolder() . 'Settings.yml', Config::YAML);
 
         Entity::registerEntity(CustomNPC::class, true);
-        $this->getServer()->getPluginManager()->registerEvents(new EventsHandler(), $this);
+        $this->getServer()->getPluginManager()->registerEvents(new EventsHandler($this), $this);
 
         $seconds = self::$settings->get('emote-timer');
         $this->getScheduler()->scheduleRepeatingTask(new EmoteTimer(), (is_bool($seconds) ? 10 : $seconds) * 20);
-        $seconds = self::$settings->get('colorful-timer');
-        $this->getScheduler()->scheduleRepeatingTask(new ColorfulTimer(), (is_bool($seconds) ? 1 : $seconds) * 20);
     }
 
     /**
@@ -166,5 +164,37 @@ class NPC extends PluginBase
         $NPC->yaw = $player->getYaw();
         $NPC->pitch = $player->getPitch();
         $NPC->spawnToAll();
+    }
+
+    /**
+     * Check if name is in editor mode or not.
+     *
+     * @param Player $player
+     * @return boolean
+     */
+    public function isEditor (Player $player): bool {
+        return in_array($player->getName(), self::$editor);
+    } 
+
+    /**
+     * Check if NPC spawned for first time and doesn't have any intractions/commands yet!
+     * 
+     * @param CustomNPC $npc
+     * @return boolean
+     */
+    public function spawnedForFistTime (CustomNPC $npc): bool {
+        return (is_null($npc->namedtag->getCompoundTag("Commands")) and is_null($npc->namedtag->getCompoundTag("Interactions")));
+    }
+    
+    public function isInCoolDown (Player $player, CustomNPC $npc): bool {
+        return isset(self::$timer[$npc->getId()][$player->getName()]);
+    }
+
+    public function addCooldown (Player $player, CustomNPC $npc) {
+        self::$timer[$npc->getId()][$player->getName()] = microtime(true);
+    }
+
+    public function getNPCCooldown (CustomNPC $npc): float {
+        return (float) min(preg_grep('/\d/i', NPC::get($npc, 'Settings')));
     }
 }
