@@ -5,6 +5,7 @@ declare(strict_types=1);
 #=========================================#
 namespace HighestDreams\CustomNPC;
 
+use DateTime;
 use HighestDreams\CustomNPC\Entity\CustomNPC;
 use HighestDreams\CustomNPC\Form\CustomizeMain;
 use pocketmine\command\ConsoleCommandSender;
@@ -55,7 +56,7 @@ class EventsHandler implements Listener
                 }
                 return;
             }
-            $this->execute($player, $NPC, $event, 'Commands');
+            $this->execute($player, $NPC, 'Commands');
         }
     }
 
@@ -65,12 +66,14 @@ class EventsHandler implements Listener
      * @param $event
      * @param string $tag
      */
-    public function execute (Player $player, CustomNPC $NPC, $event, string $tag) {
+    public function execute (Player $player, CustomNPC $NPC, string $tag) {
         # Cooldown stuff.
-        if ($this->main->getNPCCooldown($NPC) > 0) { # If npc has cooldown.
+        if (($coolDown = $this->main->getNPCCooldown($NPC)) > 0) { # If npc has cooldown.
             if (isset(NPC::$timer[$NPC->getId()][$player->getName()]) and (NPC::$timer[$NPC->getId()][$player->getName()] + $this->main->getNPCCooldown($NPC) > (microtime(true)))) {
-                $player->sendPopup(NPC::$settings->get('cooldown-message'));
-                $event->setCancelled(true);
+                $timeOne = new DateTime(DateTime::createFromFormat('U.u', (string)NPC::$timer[$NPC->getId()][$player->getName()])->format("H:i:s"));
+                $timeTwo = new DateTime(date('H:i:s'));
+                $diff = $timeTwo->diff($timeOne);
+                $player->sendPopup(str_replace('{seconds}', (string)($coolDown - $diff->s), NPC::$settings->get('cooldown-message')));
                 return;
             }
             NPC::$timer[$NPC->getId()][$player->getName()] = microtime(true);
@@ -83,7 +86,6 @@ class EventsHandler implements Listener
             }
             Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), $tags);
         }
-        $event->setCancelled(true);
     }
 
     /**
@@ -163,11 +165,11 @@ class EventsHandler implements Listener
                 $NPC = Server::getInstance()->findEntity($pk->trData->getEntityRuntimeId());
                 if ($NPC instanceof CustomNPC) {
                     if (NPC::isset($NPC, 'pair_interactions_with_commands', 'Settings')) {
-                        $this->execute($player, $NPC, $event, 'Commands');
-                    } else {
-                        if(count(NPC::get($NPC, 'Interactions')) >= 1) {
-                            $this->execute($player, $NPC, $event, 'Interactions');
-                        }
+                        $this->execute($player, $NPC, 'Commands');
+                        $event->setCancelled(true);
+                    } elseif (count(NPC::get($NPC, 'Interactions')) >= 1) {
+                        $this->execute($player, $NPC, 'Interactions');
+                        $event->setCancelled(true);
                     }
                 }
             }

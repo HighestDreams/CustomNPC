@@ -2,7 +2,7 @@
 # Plugin Custom NPC Made By HighestDreams #
 #=========================================#
 # Cool Down message for when the player has reached the maximum NPC hit limit (Will send as popup).
-cooldown-message: "§l§cYou are hitting too fast!"
+cooldown-message: "§l§cPlease wait {seconds} seconds."
 # NPC rotation distance ( 7 = When player walking around npc less than 5 block distance ).
 rotation-distance: 7
 # Select your language for plugin (Note: The language will only change for who is setting the NPC in).
