@@ -70,8 +70,8 @@ class EventsHandler implements Listener
         # Cooldown stuff.
         if (($coolDown = $this->main->getNPCCooldown($NPC)) > 0) { # If npc has cooldown.
             if (isset(NPC::$timer[$NPC->getId()][$player->getName()]) and (NPC::$timer[$NPC->getId()][$player->getName()] + $this->main->getNPCCooldown($NPC) > (microtime(true)))) {
-                $timeOne = new DateTime(DateTime::createFromFormat('U.u', (string)NPC::$timer[$NPC->getId()][$player->getName()])->format("H:i:s"));
-                $timeTwo = new DateTime(date('H:i:s'));
+                $timeOne = new DateTime(DateTime::createFromFormat('U.u', (string)NPC::$timer[$NPC->getId()][$player->getName()])->format("h:i:s"));
+                $timeTwo = new DateTime('now');
                 $diff = $timeTwo->diff($timeOne);
                 $player->sendPopup(str_replace('{seconds}', (string)($coolDown - $diff->s), NPC::$settings->get('cooldown-message')));
                 return;
