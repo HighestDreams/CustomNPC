@@ -27,6 +27,7 @@ This plugin has been made just because of someone's idea! So <a href='https://gi
 <li>Full UI customization! 🔥</li> 
 <li>Custom NPC size/scale! 🔥</li>
 <li>NPCs are full customizeable! 🔥</li>
+<li>You can add customized capes! 🔥</li>
 <li>Can set cooldown for each NPC! 🔥</li>
 <li>NPCs can do emotes (+20 emotes)! 🔥</li>
 <li>Can set rotation (Can look at players) for each NPC! 🔥</li>
