@@ -89,7 +89,6 @@ class CustomForm extends Form {
 	 * @param string $text
 	 * @param array $steps
 	 * @param int $defaultIndex
-	 * @param string|null $label
 	 */
 	public function addStepSlider(string $text, array $steps, int $defaultIndex = -1, ?string $label = null) : void {
 		$content = ["type" => "step_slider", "text" => $text, "steps" => $steps];
@@ -100,12 +99,12 @@ class CustomForm extends Form {
 		$this->labelMap[] = $label ?? count($this->labelMap);
 	}
 
-	/**
-	 * @param string $text
-	 * @param array $options
-	 * @param int $default
-	 * @param string|null $label
-	 */
+    /**
+     * @param string $text
+     * @param array $options
+     * @param int|null $default
+     * @param string|null $label
+     */
 	public function addDropdown(string $text, array $options, int $default = null, ?string $label = null) : void {
 		$this->addContent(["type" => "dropdown", "text" => $text, "options" => $options, "default" => $default]);
 		$this->labelMap[] = $label ?? count($this->labelMap);

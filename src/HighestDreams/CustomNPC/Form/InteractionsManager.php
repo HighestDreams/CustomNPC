@@ -32,7 +32,7 @@ class InteractionsManager
                     }
                     break;
                 case 3:
-                    (new CustomizeMain())->send($player, $NPC);
+                    (new CustomizeMain())->CommandsInteractionsSection($player, $NPC);
                     break;
             }
         });

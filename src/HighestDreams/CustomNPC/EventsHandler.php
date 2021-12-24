@@ -70,7 +70,7 @@ class EventsHandler implements Listener
         # Cooldown stuff.
         if (($coolDown = $this->main->getNPCCooldown($NPC)) > 0) { # If npc has cooldown.
             if (isset(NPC::$timer[$NPC->getId()][$player->getName()]) and (NPC::$timer[$NPC->getId()][$player->getName()] + $this->main->getNPCCooldown($NPC) > (microtime(true)))) {
-                $timeOne = new DateTime(DateTime::createFromFormat('U.u', (string)NPC::$timer[$NPC->getId()][$player->getName()])->format("h:i:s"));
+                $timeOne = new DateTime(DateTime::createFromFormat('U.u', (string)NPC::$timer[$NPC->getId()][$player->getName()])->format("H:i:s"));
                 $timeTwo = new DateTime('now');
                 $diff = $timeTwo->diff($timeOne);
                 $player->sendPopup(str_replace('{seconds}', (string)($coolDown - $diff->s), NPC::$settings->get('cooldown-message')));
@@ -96,14 +96,9 @@ class EventsHandler implements Listener
         $player = $event->getPlayer();
         $from = $event->getFrom();
         $to = $event->getTo();
-        $maxDistance = NPC::$settings->get('rotation-distance');
-
-        if (is_bool($maxDistance)) {
-            $maxDistance = 7;
-        }
+        $maxDistance = is_bool($distance = NPC::$settings->get('rotation-distance')) ? 5 : $distance;
 
         if ($from->distance($to) < 0.1) {
-            /* Its joke time: This is too close, get away from me.  ( LMAO pls do not swear me, Ik it was cringe ) */
             return;
         }
 
@@ -119,7 +114,7 @@ class EventsHandler implements Listener
 
                     $pk = new MovePlayerPacket();
                     $pk->entityRuntimeId = $NPC->getId();
-                    $pk->position = $NPC->asVector3()->add(0, 1.6, /* When NPC size increase and if rotation be on for NPC, NPC move in air, but now its fixed */ 0);
+                    $pk->position = $NPC->asVector3()->add(0, 1.6, 0);
                     $pk->yaw = $yaw;
                     $pk->pitch = $pitch;
                     $pk->headYaw = $yaw;
