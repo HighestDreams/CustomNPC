@@ -1,27 +1,20 @@
 <?php
-#=========================================#
-# Plugin Custom NPC Made By HighestDreams #
-#=========================================#
 declare(strict_types=1);
 
 namespace HighestDreams\CustomNPC;
 
-use HighestDreams\CustomNPC\Entity\CustomNPC;
-use pocketmine\command\Command;
-use pocketmine\command\CommandSender;
-use pocketmine\entity\Entity;
-use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\Player;
+use pocketmine\entity\Entity;
 use pocketmine\plugin\PluginBase;
-use pocketmine\utils\Config;
-use pocketmine\utils\TextFormat as COLOR;
+use pocketmine\nbt\tag\CompoundTag;
+use HighestDreams\CustomNPC\Entity\CustomNPC;
+use pocketmine\command\{Command, CommandSender};
+use pocketmine\utils\{Config, TextFormat as COLOR};
 
 class NPC extends PluginBase
 {
 
     public const PREFIX = COLOR::BOLD . COLOR::WHITE . "Custom" . COLOR::RED . "NPC " . COLOR::RESET . COLOR::DARK_RED . "> ";
-    /* NPCs setting properties */
-    public const DEFAULT_NAME = 'CUSTOM NPC';
     public static $editor = [];
     public static $teleport = [];
     public static $timer = [];
@@ -31,6 +24,7 @@ class NPC extends PluginBase
 
     public function onEnable()
     {
+        self::$Instance = $this;
         $this->saveResource('Settings.yml');
         self::$settings = new Config("{$this->getDataFolder()}Settings.yml", Config::YAML);
 
@@ -40,8 +34,11 @@ class NPC extends PluginBase
         $seconds = self::$settings->get('emote-timer');
         $this->getScheduler()->scheduleRepeatingTask(new EmoteTimer(), (is_bool($seconds) ? 10 : $seconds) * 20);
 
-        self::$Instance = $this;
-        $this->makeDirectories();
+        foreach (['Capes', 'Skins'] as $dir) {
+            if (!is_dir($path = "{$this->getDataFolder()}$dir")) {
+                @mkdir($path);
+            }
+        }
 
         foreach ($this->getResources() as $name => $info) {
             if (preg_match('/.+\.png/i', $name) and !is_file($newPath = "{$this->getDataFolder()}Capes\\$name")) {
@@ -52,6 +49,68 @@ class NPC extends PluginBase
                 fclose($capes);
             }
         }
+    }
+
+    /**
+     * @param CustomNPC $NPC
+     * @param string $value
+     * @param null $Tag
+     * @return bool
+     */
+    public static function isset(CustomNPC $NPC, string $value, $Tag = null): bool
+    {
+        return in_array(strtolower($value), self::get($NPC, $Tag ?? "Commands"));
+    }
+
+    /**
+     * To get NPC commands and other stuff.
+     * @param CustomNPC $NPC
+     * @param string $Tag
+     * @return array
+     */
+    public static function get(CustomNPC $NPC, string $Tag): array
+    {
+        $result = [];
+        if (!is_null($Tags = $NPC->namedtag->getCompoundTag($Tag))) {
+            foreach ($Tags as $Tag) {
+                $result[] = $Tag->getValue();
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * @param CustomNPC $NPC
+     * @param string $value
+     * @param null $Tag
+     */
+    public static function remove(CustomNPC $NPC, string $value, $Tag = null)
+    {
+        if (!is_null($Tags = $NPC->namedtag->getCompoundTag($Tag ?? 'Commands'))) {
+            $Tags->removeTag($value);
+            $NPC->namedtag->setTag($Tags);
+        }
+    }
+
+    /**
+     * @param CustomNPC $NPC
+     * @param string $value
+     * @param null $Tag
+     */
+    public static function add(CustomNPC $NPC, string $value, $Tag = null)
+    {
+        $TheTag = $Tag ?? 'Commands';
+        $Tags = $NPC->namedtag->getCompoundTag($TheTag) ?? new CompoundTag($TheTag);
+        $Tags->setString($value, $value);
+        $NPC->namedtag->setTag($Tags);
+    }
+
+    /**
+     * @return static
+     */
+    public static function getInstance(): self
+    {
+        return self::$Instance;
     }
 
     /**
@@ -110,75 +169,6 @@ class NPC extends PluginBase
     }
 
     /**
-     * @param CustomNPC $NPC
-     * @param string $value
-     * @param null $Tag
-     * @return bool
-     */
-    public static function isset(CustomNPC $NPC, string $value, $Tag = null): bool
-    {
-        /* Default it checks the value exists in tag Commands */
-        $TheTag = $Tag ?? "Commands";
-        return in_array(strtolower($value), self::get($NPC, $TheTag));
-    }
-
-    /**
-     * @return void
-     */
-    private function makeDirectories () {
-        if (!is_dir($path = "{$this->getDataFolder()}Capes")) {
-            mkdir($path);
-        }
-        if (!is_dir($path = "{$this->getDataFolder()}Skins")) {
-            mkdir($path);
-        }
-    }
-
-    /**
-     * To get NPC commands and other stuff.
-     * @param CustomNPC $NPC
-     * @param string $Tag
-     * @return array
-     */
-    public static function get(CustomNPC $NPC, string $Tag): array
-    {
-        $result = [];
-        if (!is_null($Tags = $NPC->namedtag->getCompoundTag($Tag))) {
-            foreach ($Tags as $Tag) {
-                $result[] = $Tag->getValue();
-            }
-        }
-        return $result;
-    }
-
-    /**
-     * @param CustomNPC $NPC
-     * @param string $value
-     * @param null $Tag
-     */
-    public static function remove(CustomNPC $NPC, string $value, $Tag = null)
-    {
-        $TheTag = $Tag ?? 'Commands'; /* Default it removes the value in tag Commands */
-        if (!is_null($Tags = $NPC->namedtag->getCompoundTag($TheTag))) {
-            $Tags->removeTag($value);
-            $NPC->namedtag->setTag($Tags);
-        }
-    }
-
-    /**
-     * @param CustomNPC $NPC
-     * @param string $value
-     * @param null $Tag
-     */
-    public static function add(CustomNPC $NPC, string $value, $Tag = null)
-    {
-        $TheTag = $Tag ?? 'Commands'; /* Default adds the value in tag Commands */
-        $Tags = $NPC->namedtag->getCompoundTag($TheTag) ?? new CompoundTag($TheTag);
-        $Tags->setString($value, $value);
-        $NPC->namedtag->setTag($Tags);
-    }
-
-    /**
      * @param Player $player
      */
     public function spawn(Player $player)
@@ -186,7 +176,7 @@ class NPC extends PluginBase
         $NBT = Entity::createBaseNBT($player, $player->getMotion(), $player->getYaw(), $player->getPitch());
         $NBT->setTag($player->namedtag->getTag("Skin"));
         $NPC = new CustomNPC ($player->getLevel(), $NBT);
-        $NPC->setNameTag(self::DEFAULT_NAME);
+        $NPC->setNameTag('Custom NPC');
         $NPC->yaw = $player->getYaw();
         $NPC->pitch = $player->getPitch();
         $NPC->spawnToAll();
@@ -198,36 +188,34 @@ class NPC extends PluginBase
      * @param Player $player
      * @return boolean
      */
-    public function isEditor (Player $player): bool {
+    public function isEditor(Player $player): bool
+    {
         return in_array($player->getName(), self::$editor);
-    } 
+    }
 
     /**
-     * Check if NPC spawned for first time and doesn't have any intractions/commands yet!
-     * 
+     * Check if NPC spawned for first time and doesn't have any interactions/commands yet!
+     *
      * @param CustomNPC $npc
      * @return boolean
      */
-    public function spawnedForFistTime (CustomNPC $npc): bool {
+    public function spawnedForFistTime(CustomNPC $npc): bool
+    {
         return (is_null($npc->namedtag->getCompoundTag("Commands")) and is_null($npc->namedtag->getCompoundTag("Interactions")));
     }
-    
-    public function isInCoolDown (Player $player, CustomNPC $npc): bool {
+
+    public function isInCoolDown(Player $player, CustomNPC $npc): bool
+    {
         return isset(self::$timer[$npc->getId()][$player->getName()]);
     }
 
-    public function addCooldown (Player $player, CustomNPC $npc) {
+    public function addCooldown(Player $player, CustomNPC $npc)
+    {
         self::$timer[$npc->getId()][$player->getName()] = microtime(true);
     }
 
-    public function getNPCCooldown (CustomNPC $npc): float {
-        return (float) min(preg_grep('/\d/i', NPC::get($npc, 'Settings')));
-    }
-
-    /**
-     * @return static
-     */
-    public static function getInstance () : self {
-        return self::$Instance;
+    public function getNPCCooldown(CustomNPC $npc): float
+    {
+        return (float)min(preg_grep('/\d/i', NPC::get($npc, 'Settings')));
     }
 }
