@@ -58,7 +58,7 @@ class NPC extends PluginBase
                 @mkdir($path);
             }
         }
-        
+
         foreach ($this->getResources() as $name => $info) {
             if (preg_match('/.+\.png/i', $name) and !is_file($newPath = "{$this->getDataFolder()}Capes\\$name")) {
                 $capes = fopen($newPath, 'w+');

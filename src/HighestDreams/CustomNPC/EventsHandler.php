@@ -1,33 +1,23 @@
 <?php
 declare(strict_types=1);
-#=========================================#
-# Plugin Custom NPC Made By HighestDreams #
-#=========================================#
+
 namespace HighestDreams\CustomNPC;
 
 use DateTime;
-use HighestDreams\CustomNPC\Entity\CustomNPC;
-use HighestDreams\CustomNPC\Form\CustomizeMain;
-use pocketmine\command\ConsoleCommandSender;
-use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
-use pocketmine\event\entity\EntityDamageByEntityEvent;
-use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\entity\EntitySpawnEvent;
-use pocketmine\event\Listener;
-use pocketmine\event\player\PlayerChatEvent;
-use pocketmine\event\player\PlayerMoveEvent;
-use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\math\Vector2;
-use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
-use pocketmine\network\mcpe\protocol\MovePlayerPacket;
-use pocketmine\Player;
-use pocketmine\Server;
+use pocketmine\{Player, Server};
 use pocketmine\utils\TextFormat as COLOR;
+use pocketmine\command\ConsoleCommandSender;
+use pocketmine\event\{Listener, server\DataPacketReceiveEvent};
+use pocketmine\event\player\{PlayerChatEvent, PlayerMoveEvent};
+use HighestDreams\CustomNPC\{Entity\CustomNPC, Form\CustomizeMain};
+use pocketmine\event\entity\{EntitySpawnEvent, EntityDamageEvent, EntityDamageByEntityEvent};
+use pocketmine\network\mcpe\protocol\{InventoryTransactionPacket, types\inventory\UseItemOnEntityTransactionData, MovePlayerPacket};
 
 class EventsHandler implements Listener
 {
 
-    public $main;
+    private $main;
 
     public function __construct(NPC $main)
     {
@@ -37,7 +27,7 @@ class EventsHandler implements Listener
     /**
      * @param EntityDamageByEntityEvent $event
      */
-    public function EntityDamageByEntityEvent (EntityDamageByEntityEvent $event)
+    public function EntityDamageByEntityEvent(EntityDamageByEntityEvent $event)
     {
         $player = $event->getDamager();
         $NPC = $event->getEntity();
@@ -49,7 +39,6 @@ class EventsHandler implements Listener
                 (new CustomizeMain())->send($player, $NPC);
                 return;
             }
-
             if ($this->main->spawnedForFistTime($NPC)) {
                 if ($player->hasPermission('customNPC.permission')) { # Send tip to enable editor mode.
                     $player->sendMessage(NPC::PREFIX . COLOR::GREEN . Language::translated(Language::NPC_NEVER_ADDED_COMMAND));
@@ -63,22 +52,22 @@ class EventsHandler implements Listener
     /**
      * @param Player $player
      * @param CustomNPC $NPC
-     * @param $event
      * @param string $tag
      */
-    public function execute (Player $player, CustomNPC $NPC, string $tag) {
+    public function execute(Player $player, CustomNPC $NPC, string $tag)
+    {
         # Cooldown stuff.
         if (($coolDown = $this->main->getNPCCooldown($NPC)) > 0) { # If npc has cooldown.
-            if (isset(NPC::$timer[$NPC->getId()][$player->getName()]) and (NPC::$timer[$NPC->getId()][$player->getName()] + $this->main->getNPCCooldown($NPC) > (microtime(true)))) {
-                $timeOne = new DateTime(DateTime::createFromFormat('U.u', (string)NPC::$timer[$NPC->getId()][$player->getName()])->format("H:i:s"));
-                $timeTwo = new DateTime('now');
-                $diff = $timeTwo->diff($timeOne);
-                $player->sendPopup(str_replace('{seconds}', (string)($coolDown - $diff->s), NPC::$settings->get('cooldown-message')));
-                return;
+            if (isset(NPC::$timer[$NPC->getId()][$player->getName()])) {
+                $current = new DateTime('now');
+                $last = NPC::$timer[$NPC->getId()][$player->getName()];
+                if (($sec = $current->diff($last)->s) < $coolDown) { # Needs to upgrade in next update (Support hours/days/minutes)
+                    $player->sendPopup(str_replace('{seconds}', (string)($coolDown - $sec), NPC::$settings->get('cooldown-message')));
+                    return;
+                }
             }
-            NPC::$timer[$NPC->getId()][$player->getName()] = microtime(true);
+            NPC::$timer[$NPC->getId()][$player->getName()] = new DateTime('now');
         }
-
         # Tags (Commands/Interactions) Execution.
         foreach (NPC::get($NPC, $tag) as $tags) {
             foreach (["{player}" => '"' . $player->getName() . '"', "{rca}" => 'rca'] as $search => $replace) {
@@ -91,7 +80,7 @@ class EventsHandler implements Listener
     /**
      * @param PlayerMoveEvent $event
      */
-    public function NPCRotation (PlayerMoveEvent $event)
+    public function NPCRotation(PlayerMoveEvent $event)
     {
         $player = $event->getPlayer();
         $from = $event->getFrom();
@@ -102,7 +91,7 @@ class EventsHandler implements Listener
             return;
         }
 
-        # Shitty code :(
+        # Needs to fix in next update...
         foreach ($player->getLevel()->getNearbyEntities($player->getBoundingBox()->expandedCopy($maxDistance, $maxDistance, $maxDistance), $player) as $NPC) {
             if ($NPC instanceof CustomNPC) {
                 if (NPC::isset($NPC, 'rotation', 'Settings')) {
@@ -152,7 +141,8 @@ class EventsHandler implements Listener
     /**
      * @param DataPacketReceiveEvent $event
      */
-    public function onDataPkReceive (DataPacketReceiveEvent $event) {
+    public function onDataPkReceive(DataPacketReceiveEvent $event)
+    {
         $player = $event->getPlayer();
         $pk = $event->getPacket();
         if ($pk instanceof InventoryTransactionPacket and $pk->trData instanceof UseItemOnEntityTransactionData) {
