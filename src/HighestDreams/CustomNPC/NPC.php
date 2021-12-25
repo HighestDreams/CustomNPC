@@ -58,15 +58,7 @@ class NPC extends PluginBase
                 @mkdir($path);
             }
         }
-
-
-        $new = [];
-        foreach (self::$emotes as $NAME => $ID) {
-            $length = strlen($NAME . $ID);
-            $new[$length] = $NAME;
-        }
-        print_r($new);
-
+        
         foreach ($this->getResources() as $name => $info) {
             if (preg_match('/.+\.png/i', $name) and !is_file($newPath = "{$this->getDataFolder()}Capes\\$name")) {
                 $capes = fopen($newPath, 'w+');
