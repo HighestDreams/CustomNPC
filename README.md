@@ -21,9 +21,9 @@
     The best POCKETMINE-MP <strong>NPC</strong> plugin in terms of <strong>features and ease</strong> of use.
     <br />
     <br />
-    <a href="https://github.com/HighestDreams/CustomNPC/issues">Report Bug</a>
+    <a href="https://github.com/HighestDreams/CustomNPC/issues/new">Report Bug</a>
     ·
-    <a href="https://github.com/HighestDreams/CustomNPC/issues">Suggest Your Idea</a>
+    <a href="https://github.com/HighestDreams/CustomNPC/issues/new">Suggest Your Idea</a>
   </p>
 </p>
 
@@ -70,7 +70,7 @@ To install this plugin, follow these simple example steps.
 
 ### Prerequisites
 
-This is an important thing you must know before installing this plugin! there is only one command for this plugin <code>/npc</code> wich is used to spawn NPCs! Also this commands have only one arg <code>/npc edit</code> wich is used to enable/disable editor mode! 
+This is an important thing you must know before installing this plugin! there is only one command for this plugin <code>/npc</code> which is used to spawn NPCs! Also this commands have only one arg <code>/npc edit</code> which is used to enable/disable editor mode! 
 
   <li>Editor mode: After spawning npc, you need to use command <code>/npc edit</code> to enable editor mode and editting npcs (Also for disable editor mode, run this command again).</li>
 
@@ -96,7 +96,7 @@ This is an important thing you must know before installing this plugin! there is
 <li>Can set rotation (Can look at players) for each NPC! 🔥</li>
 <li>Change the skin of NPC to the skin of an online player with dropdown! 🔥</li>
 <li>Can pair interactions with commands (When you right click on NPC, execute all commands)! 🔥</li>
-<li>Can upair interactions with commands (When you right click on NPC, execute only interactions! not commands)! 🔥</li>
+<li>Can unpair interactions with commands (When you right click on NPC, execute only interactions! not commands)! 🔥</li>
 <li><strong>AND MORE!<strong></li>
 
 
