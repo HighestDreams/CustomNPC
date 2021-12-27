@@ -226,7 +226,7 @@ class NPC extends PluginBase
     public function getNPCCooldown(CustomNPC $npc): float
     {
         if (!empty($result = preg_grep('/\d/i', NPC::get($npc, 'Settings')))) {
-            $res = (float)min();
+            $res = (float)min($result);
         }
         return $res ?? 0.0;
     }
