@@ -148,7 +148,7 @@ class NPC extends PluginBase
                     if (count($args) < 2) {
                         if (isset($args[0])) {
                             /* NPC Editor */
-                            if (strtolower($args[0]) === "edit") {
+                            if (strtolower($args[0]) === "edit" and $player->hasPermission('customnpc.permission')) {
                                 if (!isset(self::$editor[array_search($player->getName(), self::$editor)])) {
                                     self::$editor[] = $player->getName();
                                     $player->sendMessage(self::PREFIX . COLOR::GREEN . Language::translated(Language::NPC_EDIT_ENABLED));
