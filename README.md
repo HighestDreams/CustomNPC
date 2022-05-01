@@ -6,7 +6,9 @@
 ![GitHub repo size](https://img.shields.io/github/repo-size/HighestDreams/CustomNPC?style=plastic&color=dark_green)
 ![GitHub last commit](https://img.shields.io/github/last-commit/HighestDreams/CustomNPC?color=dark_green&style=plastic)
 
-
+## IMRTANT
+This plugin is for api 3.x.x and if you want to download api 4.x.x, Then here is the link:
+https://github.com/HighestDreams/AllInOneNpc
 
 <!-- PROJECT LOGO -->
 <br />
